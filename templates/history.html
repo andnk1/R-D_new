@@ -18,6 +18,7 @@
     <div class="card">
       <div class="cardhead">Gross Receipts &amp; QRE History</div>
       <div class="cardbody">
+        {% if years_note %}<p class="hint" style="margin:0 0 10px">{{ years_note }}</p>{% endif %}
         <table class="hist">
           <thead>
             <tr><th style="width:14%">Tax year</th><th>Gross receipts ($)</th><th style="width:14%">Status</th><th>Qualified research expenses ($)</th><th style="width:14%">Status</th></tr>
@@ -34,6 +35,17 @@
           </tbody>
         </table>
 
+        <p class="derived" id="firstgr">First year with gross receipts (from the table): <b>{{ first_gr or 'none yet' }}</b></p>
+        <details class="explain">
+              <summary>Explain this – the Qualified Small Business (payroll tax) receipts test</summary>
+              <div class="exbody">
+                <p>The first year with gross receipts is a core part of the <b>Qualified Small Business (QSB)</b> payroll-tax credit test. A QSB generally must have current-year gross receipts of <b>less than $5 million</b> and <b>no gross receipts for any tax year before the five-tax-year period</b> ending with the credit year.</p>
+                <p>For a 2025 credit year, the five-year period is 2021–2025. Gross receipts before 2021 generally prevent QSB payroll status. For a 2026 credit year, gross receipts before 2022 generally prevent QSB payroll status.</p>
+                                <p><b>No earlier gross receipts?</b> That does not hurt the test – a pre-revenue startup can satisfy the receipt-history requirement. The app evaluates the dates automatically.</p>
+                <div class="pitfall"><b class="pl">Pitfalls:</b> a financing round is not automatically gross receipts – equity contributions generally are not, while service revenue, grants, token sales, interest and other receipts may need analysis. Predecessors and controlled / common-control entities can also affect the test.</div>
+                <div class="ref">IRS: <a href="https://www.irs.gov/instructions/i6765" target="_blank">Instructions for Form 6765</a> · <a href="https://www.irs.gov/credits-deductions/research-credit-against-payroll-tax-for-small-businesses" target="_blank">Research credit against payroll tax for small businesses</a></div>
+              </div>
+            </details>
         <details class="explain">
           <summary>Explain this – current-year gross receipts</summary>
           <div class="exbody">
@@ -57,8 +69,8 @@
                 <tr><td><b>Alternative simplified credit (ASC): any age</b></td><td>Generally 14% × [current QREs − 50% of the average QREs for the prior 3 years]. If any of those three years had <b>no QREs</b>, use 6% × current QREs instead.</td><td>Prior 3 years' QREs; <b>no sales figures</b> needed.</td></tr>
               </tbody>
             </table>
-            <h4 style="margin-top:16px">Regular credit: startup rules and the fixed-base percentage</h4>
-            <p><b>For companies under the startup rules:</b> count tax years with QREs, including years when no credit was claimed.</p>
+            <h4 style="margin-top:16px">Regular credit: the fixed-base percentage</h4>
+            <p>Count tax years with QREs, including years when no credit was claimed.</p>
             <p><b>Ratio = total QREs for the specified years ÷ total gross receipts for those same years.</b></p>
             <table class="mtable fbp">
               <thead><tr><th>Current QRE year</th><th>Fixed-base percentage</th></tr></thead>
@@ -74,20 +86,15 @@
             </table>
             <p><b>Maximum: 16%.</b> Round to the nearest <b>0.01 percentage point</b>.</p>
 
-            <h4>Who is a "startup"?</h4>
-            <p>"Startup" here is a special tax definition – not necessarily a newly formed company. A company falls under the Regular R&amp;D credit startup rules if either:</p>
-            <ul>
-              <li>its first tax year with <b>both</b> gross receipts and QREs began <b>after 1983</b>; or</li>
-              <li>it had both gross receipts and QREs in <b>fewer than three tax years during 1984–1988</b>.</li>
-            </ul>
-            <p>Practically: a company formed in 2000, 2015, or 2025 generally falls under these rules, even if it is now an established business.</p>
-            <p>Then count its years with QREs to determine the fixed-base percentage:</p>
-            <ul>
-              <li>First five QRE years: <b>3%</b>.</li>
-              <li>Sixth QRE year onward: use the historical formulas in the fixed-base table above.</li>
-            </ul>
-            <div class="pitfall">It does <b>not</b> restart at 3% simply because this is the company's first year claiming the credit. Prior qualifying research years count.</div>
             <div class="ref">IRS: <a href="https://www.irs.gov/instructions/i6765" target="_blank">Instructions for Form 6765 – Regular Credit (Section A, line 6 fixed-base percentage), ASC, and payroll eligibility</a></div>
+          </div>
+        </details>
+        <details class="explain">
+          <summary>Explain this – shortcut for calculations</summary>
+          <div class="exbody">
+            <p><b>Company existed but had neither qualifying R&amp;D expenses nor gross receipts:</b> The regular method generally gives 10% of current QREs because the base is zero and the 50% limitation applies (with the §280C reduced-credit election: current QREs × 7.9%). ASC gives 6%. Regular generally produces the larger credit.</p>
+            <p><b>Company existed and had sales, but no prior qualifying R&amp;D expenses:</b> The regular method generally uses a 3% fixed-base percentage multiplied by average gross receipts for the preceding four years. That base reduces the expenses eligible for the credit. ASC gives 6% of current QREs. Compare both methods; substantial prior sales may make ASC more favorable.</p>
+            <p><b>Company existed and had qualifying R&amp;D expenses, but never claimed the credit:</b> Prior QREs still count. Compare the regular method, which requires historical gross receipts and the applicable fixed-base percentage, with ASC. ASC uses the 14% formula if there were QREs in all three prior years; otherwise, it uses 6% of current QREs.</p>
           </div>
         </details>
       </div>
@@ -95,23 +102,9 @@
 
     <!-- ============ PRIOR CREDIT HISTORY ============ -->
     <div class="card">
-      <div class="cardhead">Prior Credit History</div>
+      <div class="cardhead">Prior Payroll-Tax Elections</div>
       <div class="cardbody">
-        <div class="grid2">
-          <div>
-            <p class="q">Has the company claimed the R&amp;D credit in the past?</p>
-            <div class="seg">
-              <label><input type="radio" name="prior" value="yes" {{ "checked" if h.prior == "yes" }}><span>Yes</span></label>
-              <label><input type="radio" name="prior" value="no" {{ "checked" if h.prior == "no" }}><span>No</span></label>
-              <label><input type="radio" name="prior" value="unsure" {{ "checked" if h.prior == "unsure" }}><span>Unsure</span></label>
-            </div>
-            <details class="explain">
-              <summary>Explain this – why we ask</summary>
-              <div class="exbody">
-                <p>Helps interpret prior QRE data and election history. The app should not assume "No prior credit" means there were no research expenses.</p>
-              </div>
-            </details>
-          </div>
+        <div>
           <div>
             <p class="q">Has the company made a payroll-tax credit election in any prior year?</p>
             <div class="seg">

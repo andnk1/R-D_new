@@ -60,10 +60,10 @@ MIN_ROWS = 5
 
 def blank_study():
     return {
-        "company": {"entity": "C", "tax_year": "2025", "fye": "12", "cg": "no",
+        "company": {"entity": "C", "tax_year": "2025", "fye": "12", "cg": "no", "year_started": "",
                     "filed": "no", "ext": "no", "timely": "yes", "version": "v1"},
         "projects": {},
-        "history": {"gr": {}, "qre": {}, "prior": "no", "pte": "no", "pte_years": []},
+        "history": {"gr": {}, "qre": {}, "pte": "no", "pte_years": []},
         "expenses": {k: {"rows": [], "total_amount": "", "total_pct": ""} for k in CATEGORIES},
         "other": {"show_payroll": "yes"},
         "completed": {},
@@ -97,9 +97,25 @@ def tax_year(study):
         return 2025
 
 
+def year_started(study):
+    n = num(study["company"].get("year_started"))
+    return int(n) if n is not None else None
+
+
 def history_years(study):
-    ty = tax_year(study)
-    return [ty - i for i in range(0, 11)]          # study year + 10 prior years
+    """Study year back to the year operations began (max 10 prior years)."""
+    ty, ys = tax_year(study), year_started(study)
+    first = ty - 10
+    if ys is not None and ty - 10 <= ys <= ty:
+        first = ys
+    return list(range(ty, first - 1, -1))
+
+
+def first_gross_receipts_year(study):
+    """Earliest year in the table with gross receipts above $0 (None = none yet)."""
+    years = sorted(int(y) for y, v in study["history"]["gr"].items()
+                   if (num(v) or 0) > 0 and int(y) in history_years(study))
+    return years[0] if years else None
 
 
 # ---------------------------------------------------------------------------
@@ -161,9 +177,16 @@ def engine_data(study):
         "annual_gross_receipts_current": num(h["gr"].get(str(ty))),
         "return_filed":          c.get("filed", "no"),
     }
+    ys = year_started(study)
     for i in range(1, 11):
-        data[f"qre_yr_minus{i}"] = num(h["qre"].get(str(ty - i)))
-        data[f"annual_gross_receipts_yr_minus{i}"] = num(h["gr"].get(str(ty - i)))
+        y = ty - i
+        if ys is not None and y < ys:
+            # company did not exist yet -> confirmed zero (these rows are not shown on step 3)
+            data[f"qre_yr_minus{i}"] = 0.0
+            data[f"annual_gross_receipts_yr_minus{i}"] = 0.0
+        else:
+            data[f"qre_yr_minus{i}"] = num(h["qre"].get(str(y)))
+            data[f"annual_gross_receipts_yr_minus{i}"] = num(h["gr"].get(str(y)))
     return data
 
 
@@ -180,11 +203,11 @@ def review_flags(study):
     if num(h["gr"].get(str(ty))) is None:
         flags.append(("Current-year gross receipts",
                       f"{ty} is blank, so the payroll-tax (QSB) option cannot be tested and will not appear in the study."))
-    if not (c.get("first_receipts_year") or "").strip():
-        flags.append(("First year with gross receipts", "not entered on step 1."))
     if not (c.get("year_research_started") or "").strip():
         flags.append(("Year R&D activity began", "not entered on step 1 – the Regular Credit cannot be calculated without it."))
-    missing = [str(ty - i) for i in (1, 2, 3) if num(h["qre"].get(str(ty - i))) is None]
+    ys = year_started(study)
+    missing = [str(ty - i) for i in (1, 2, 3)
+               if not (ys is not None and ty - i < ys) and num(h["qre"].get(str(ty - i))) is None]
     if missing:
         flags.append(("Prior-year QREs", f"blank for {', '.join(missing)} – the ASC needs all three prior years (enter 0 if confirmed zero)."))
     if c.get("cg") in ("yes", "unsure"):

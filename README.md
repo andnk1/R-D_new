@@ -49,6 +49,8 @@ backed by Railway Postgres, and use it in `app.py` instead of `FileStore`.
 - The study PDF labels the method "Regular Credit Method" whenever a Regular figure exists, even when the
   higher ASC credit is the one shown. The Review screen shows the correct label.
 - Regular credit, QRE year 11+: engine uses years 5–9; the rule allows any 5 years from 5–10.
-- Items collected but not yet in the engine (noted on screen): first year with gross receipts, controlled
+- Step 3 shows only the years from "Year operations began"; earlier years are sent to the engine as $0 (company did not exist).
+- First year with gross receipts is derived from the step 3 table (not asked).
+- Items collected but not yet in the engine (noted on screen): controlled
   groups, prior payroll elections, filing-status / 280C logic, special contract-research percentages,
   foreign R&E amortization, Section G.

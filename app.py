@@ -96,7 +96,7 @@ def company():
     if request.method == "POST":
         f = request.form
         keys = ["name", "ein", "entity", "industry", "tax_year", "fye", "year_started",
-                "year_research_started", "first_receipts_year", "cg", "filed", "ext",
+                "year_research_started", "cg", "filed", "ext",
                 "timely", "preparer", "version"]
         data["company"] = {k: f.get(k, "").strip() for k in keys}
         return finish(sid, data, "company", "projects")
@@ -144,11 +144,20 @@ def history():
             h["gr"][str(y)] = f.get(f"gr_{y}", "").strip()
             if y != years[0]:
                 h["qre"][str(y)] = f.get(f"qre_{y}", "").strip()
-        h["prior"] = f.get("prior", "no")
         h["pte"] = f.get("pte", "no")
         h["pte_years"] = f.getlist("pte_years") if h["pte"] == "yes" else []
         return finish(sid, data, "history", "expenses")
-    return render_template("history.html", step="history", h=data["history"], years=years)
+    ys = S.year_started(data)
+    if ys is None:
+        note = "Enter “Year operations began” on step 1 to show only the years the company existed."
+    elif ys > S.tax_year(data):
+        note = f"“Year operations began” ({ys}) is after the study year – check step 1."
+    elif S.tax_year(data) - 10 < ys:
+        note = f"Showing {years[-1]}–{years[0]}. Years before {ys} are treated as zero – the company did not exist."
+    else:
+        note = ""
+    return render_template("history.html", step="history", h=data["history"], years=years,
+                           years_note=note, first_gr=S.first_gross_receipts_year(data))
 
 
 # ---------------------------------------------------------------------------
@@ -242,7 +251,9 @@ def _summary(data):
     qre_years = sorted(int(y) for y, v in h["qre"].items() if S.num(v) is not None)
     def span(ys):
         return f"{ys[0]}–{ys[-1]}" if len(ys) > 1 else (str(ys[0]) if ys else "none")
-    s3 = f"Gross receipts entered: {span(gr_years)} · Prior-year QREs entered: {span(qre_years)}"
+    fg = S.first_gross_receipts_year(data)
+    s3 = (f"Gross receipts entered: {span(gr_years)} · Prior-year QREs entered: {span(qre_years)}"
+          f" · First year with gross receipts: {fg or 'none yet'}")
     if S.num(h["gr"].get(str(ty))) is None:
         s3 += f" · {ty} gross receipts blank"
     parts = []

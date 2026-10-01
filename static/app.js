@@ -68,7 +68,16 @@
       else if (Number(v) === 0) { cell.innerHTML = '<span class="tag zer">Confirmed zero</span>'; inp.classList.add("z"); }
       else { cell.innerHTML = '<span class="tag ok">Entered</span>'; inp.classList.remove("z"); }
     }
-    $$("input.hist").forEach(i => { status(i); i.addEventListener("input", () => status(i)); });
+    function firstGr() {
+      let first = null;
+      $$('input.hist[name^="gr_"]').forEach(i => {
+        const y = parseInt(i.name.slice(3), 10), v = num(i.value);
+        if (v > 0 && (first === null || y < first)) first = y;
+      });
+      const b = $("#firstgr b"); if (b) b.textContent = first === null ? "none yet" : first;
+    }
+    $$("input.hist").forEach(i => { status(i); i.addEventListener("input", () => { status(i); firstGr(); }); });
+    firstGr();
     $$('input[name="pte"]').forEach(r => r.addEventListener("change", () => {
       $("#pteyears").style.display = (val("pte") === "yes") ? "" : "none";
     }));
