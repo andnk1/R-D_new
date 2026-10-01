@@ -11,6 +11,7 @@ from datetime import date
 from flask import (Flask, abort, flash, redirect, render_template, request,
                    send_file, session, url_for)
 
+import form6765 as F
 import study as S
 import workbook as W
 from store import FileStore
@@ -43,6 +44,7 @@ def current():
 def finish(sid, data, step, next_step):
     data["completed"][step] = date.today().isoformat()
     data["run"] = None                       # inputs changed -> results must be re-run
+    data["method"] = ""                      # ... and the method goes back to the engine's pick
     store.save(sid, data)
     if request.form.get("go") == "stay":
         flash("Saved.")
@@ -171,7 +173,9 @@ def _read_expense_form(data):
         rows = []
         for i in range(n):
             r = {k: f.get(f"{cat}-{i}-{k}", "").strip() for k in ("name", "col2", "state", "amount", "pct")}
-            if any(r.values()):
+            if any(r.values()) and S.CATEGORIES[cat].get("officer"):
+                r["officer"] = f.get(f"{cat}-{i}-officer", "No")
+            if any(v for k, v in r.items() if k != "officer"):
                 rows.append(r)
         data["expenses"][cat] = {"rows": rows,
                                  "total_amount": f.get(f"{cat}-total_amount", "").strip(),
@@ -206,7 +210,7 @@ def expenses():
     for cat in S.CATEGORIES:
         r = list(data["expenses"][cat]["rows"])
         while len(r) < S.MIN_ROWS:
-            r.append({"name": "", "col2": "", "state": "", "amount": "", "pct": ""})
+            r.append({"name": "", "col2": "", "state": "", "amount": "", "pct": "", "officer": "No"})
         rows[cat] = r
     return render_template("expenses.html", step="expenses", cats=S.CATEGORIES, rows=rows,
                            e=data["expenses"], tab=request.args.get("tab", "wages"))
@@ -262,6 +266,9 @@ def _summary(data):
         label = cfg["tab"].split(" / ")[0] if cat != "foreign" else "Foreign R&E"
         detail = "total only" if mode == "total" else f"{S.line_count(data, cat)} line(s)"
         txt = f"{label}: {detail} – {S.money(amt)}"
+        if cat == "wages":
+            ow = S.officer_wages(data)
+            txt += f" (officers {S.money(ow)})" if ow else ""
         if cat == "contract":
             txt += f" × 65% = {S.money(amt * 0.65)}"
         if cat == "foreign":
@@ -284,6 +291,35 @@ def review():
         return redirect(url_for("review") + "#results")
     return render_template("review.html", step="review", summary=_summary(data),
                            flags=S.review_flags(data), run=data.get("run"))
+
+
+@app.route("/feasibility/method", methods=["POST"])
+def switch_method():
+    """Re-run the study using the method chosen on the Review page (engine math unchanged)."""
+    sid, data = current()
+    m = request.form.get("method", "")
+    data["method"] = m if m in ("regular", "asc") else ""
+    data["run"] = S.run_study(data, store.folder(sid))
+    store.save(sid, data)
+    flash(f"Study prepared using the {S.METHOD_NAMES.get(data['run'].get('method_used'), 'recommended')} method.")
+    return redirect(url_for("review") + "#results")
+
+
+@app.route("/feasibility/form6765")
+def export_6765():
+    """Draft Form 6765 – separate PDF, not part of the study."""
+    sid, data = current()
+    run = data.get("run")
+    if not run or run.get("recommended") is None:
+        flash("Run the study first – Form 6765 needs a calculated credit.", "err")
+        return redirect(url_for("review"))
+    try:
+        pdf, info = F.export(data)
+    except Exception as e:
+        flash(f"Form 6765 could not be created: {e}", "err")
+        return redirect(url_for("review") + "#results")
+    name = f"Form_6765_DRAFT_{run['safe_name']}_{run.get('tax_year', '')}.pdf"
+    return send_file(io.BytesIO(pdf), mimetype="application/pdf", as_attachment=True, download_name=name)
 
 
 FILES = {"html": ("study.html", "text/html"), "pdf": ("study.pdf", "application/pdf"),

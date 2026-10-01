@@ -150,6 +150,8 @@ def calculate(data: dict) -> dict:
     # ── Step 4 — Regular Credit Method ───────────────────────────────────────
     regular_credit_280c   = None
     regular_method_status = ""
+    # detail values returned for Form 6765 (output only - no effect on the math)
+    fixed_base_pct = avg_gross_receipts = base_amount = qre_excess = regular_base = None
 
     if qre_year_number is None:
         regular_method_status = (
@@ -270,6 +272,8 @@ def calculate(data: dict) -> dict:
     # ── Step 5 — Alternative Simplified Credit (ASC) ─────────────────────────
     asc_credit_280c   = None
     asc_method_status = ""
+    asc_prior3_total = asc_prior3_avg = asc_excess = None
+    asc_startup = None
 
     yr1 = get_value(data, "qre_yr_minus1")
     yr2 = get_value(data, "qre_yr_minus2")
@@ -286,6 +290,8 @@ def calculate(data: dict) -> dict:
 
     elif yr1 == 0 or yr2 == 0 or yr3 == 0:
         # Startup: any one of the 3 prior years has QRE = 0  →  6% rate
+        asc_startup     = True
+        asc_prior3_total = yr1 + yr2 + yr3
         asc_raw         = ordinary_qre * ASC_STARTUP_RATE          # 6%
         asc_credit_280c = asc_raw * ASC_280C_FACTOR + special_credit_280c
         asc_method_status = "ASC Startup (6%) — prior-year QRE = 0 in at least one year"
@@ -294,6 +300,7 @@ def calculate(data: dict) -> dict:
         # Standard ASC: all 3 prior years have QREs > 0
         avg_prior_3yr   = (yr1 + yr2 + yr3) / 3
         excess          = max(ordinary_qre - 0.50 * avg_prior_3yr, 0.0)
+        asc_startup, asc_prior3_total, asc_prior3_avg, asc_excess = False, yr1 + yr2 + yr3, avg_prior_3yr, excess
         asc_raw         = excess * ASC_RATE                         # 14%
         asc_credit_280c = asc_raw * ASC_280C_FACTOR + special_credit_280c
         asc_method_status = (
@@ -342,6 +349,17 @@ def calculate(data: dict) -> dict:
         # Detail (for console summary)
         "qre_year_number":         qre_year_number,
         "scenario_number":         scenario_number,
+        # Detail for Form 6765 (returned only - same values the math above used)
+        "regular_fixed_base_pct":  fixed_base_pct if regular_credit_280c is not None else None,
+        "regular_avg_gross_receipts": avg_gross_receipts,
+        "regular_base_amount":     base_amount,
+        "regular_qre_excess":      qre_excess,
+        "regular_base":            regular_base,          # Form 6765 line 11
+        "asc_startup":             asc_startup,
+        "asc_prior3_total":        asc_prior3_total,      # Form 6765 line 21
+        "asc_prior3_avg":          asc_prior3_avg,
+        "asc_excess":              asc_excess,
+        "special_amount":          special_amount,
     }
 
 

@@ -303,3 +303,20 @@ form { margin: 0; }
 .runrow .working .spinner { margin: 0 0 8px auto; }
 .mtable.fbp { max-width: 820px; } .mtable.fbp td:first-child { width: 22%; } .mtable.fbp td:last-child { width: auto; white-space: nowrap; }
 .derived { font-size: .9rem; margin: 12px 0 4px; }
+
+/* ---- wages: officer column (Form 6765 line 38) ---- */
+.qt th.offc, .qt td.offc { width: 86px; }
+.qt select.off { width: 100%; padding: 6px 4px; border: 1px solid var(--grey); border-radius: 5px; font-size: .88rem; font-family: inherit; color: var(--ink); background: #fff; }
+.haswages .qt tbody input.amt { max-width: 130px; }
+.qt th .hint6765 { display: block; font-size: .62rem; font-weight: 400; text-transform: none; letter-spacing: 0; opacity: .8; }
+
+/* ---- review: other credit method + Form 6765 ---- */
+.om-row { display: flex; gap: 14px; flex-wrap: wrap; }
+.om-fig { flex: 1 1 240px; background: #fff; border: 1px solid var(--grey); border-left: 4px solid var(--navy); border-radius: 6px; padding: 10px 14px; }
+.om-fig.used { border-left-color: var(--green); }
+.om-fig .k { font-size: .75rem; color: #6b7280; text-transform: uppercase; letter-spacing: .04em; }
+.om-fig .v { font-size: 1.5rem; font-weight: 800; color: var(--dark); margin: 2px 0; }
+.om-fig .d { font-size: .82rem; color: #374151; }
+.om-status { font-size: .8rem; color: #6b7280; margin: 8px 0 0; }
+.om-form { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 12px; }
+.om-form .q { font-weight: 600; font-size: .9rem; color: var(--dark); }

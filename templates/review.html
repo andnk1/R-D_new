@@ -67,6 +67,38 @@
   {% endif %}
 </div>
 
+{% if run.other %}{% set o = run.other %}
+<div class="card othermethod">
+  <div class="cardhead">Other credit method &mdash; {{ o.name }}</div>
+  <div class="cardbody">
+    {% if o.value is not none %}
+    <div class="om-row">
+      <div class="om-fig"><div class="k">{{ o.name }} &mdash; 280C applied</div><div class="v">{{ money(o.value, true) }}</div>
+        <div class="d">{{ 'Higher' if o.diff > 0 else ('Lower' if o.diff < 0 else 'Same') }} than the {{ o.used_name }} used in the study{% if o.diff != 0 %} by {{ money(o.diff|abs, true) }}{% endif %}.</div></div>
+      <div class="om-fig used"><div class="k">Used in the study &mdash; {{ o.used_name }}</div><div class="v">{{ money(run.recommended, true) }}</div>
+        <div class="d">{{ 'Chosen by preparer.' if o.higher else 'Higher credit (app recommendation).' if o.diff != 0 else 'Both methods give the same credit.' }}</div></div>
+    </div>
+    <p class="om-status">{{ o.status }}</p>
+    <form method="post" action="{{ url_for('switch_method') }}" class="om-form">
+      <input type="hidden" name="method" value="{{ o.key }}">
+      <span class="q">Would you like the study prepared with the {{ o.name }}?</span>
+      <button class="btn small" type="submit">{{ 'Yes – switch back to ' if o.higher else 'Yes – prepare with ' }}{{ o.name }}</button>
+    </form>
+    <p class="hint">The study and Form 6765 will both use the method you choose. Changing any input on steps 1–5 returns to the app's recommended (higher) method.</p>
+    {% else %}
+    <p class="lead">The {{ o.name }} could not be calculated: {{ o.status }}</p>
+    {% endif %}
+    <details class="explain">
+      <summary>Explain this &ndash; choosing the credit method</summary>
+      <div class="exbody">
+        <p>You cannot revoke ASC by switching to the regular method on an amended return &ndash; an ASC election carries forward to later years, but may be revoked for a later year on a timely filed original return by completing Section A of Form 6765.</p>
+        <div class="ref">IRS: <a href="https://www.irs.gov/instructions/i6765" target="_blank">Instructions for Form 6765 &ndash; Specific Instructions</a></div>
+      </div>
+    </details>
+  </div>
+</div>
+{% endif %}
+
 <div class="card">
   <div class="cardhead">Client-facing feasibility study</div>
   <div class="cardbody">
@@ -79,6 +111,16 @@
     {% if not run.pdf_ok %}<div class="enote">PDF not created ({{ run.pdf_error }}). Open the study and use the browser's Print → Save as PDF, or install Playwright (see README).</div>{% endif %}
   </div>
 </div>
+
+{% if run.recommended is not none %}
+<div class="card">
+  <div class="cardhead">Form 6765 &mdash; draft (separate from the study)</div>
+  <div class="cardbody">
+    <p class="lead">A draft Form 6765 ({{ 'Section A – Regular credit' if run.method_used == 'regular' else 'Section B – ASC' }}) filled from this study, in whole dollars. It is a separate PDF and is not included in the study. Lines the app does not collect are left blank, and red preparer notes show what still needs review.</p>
+    <div class="dlrow"><a href="{{ url_for('export_6765') }}" class="btn small">⬇ Export 6765</a></div>
+  </div>
+</div>
+{% endif %}
 {% endif %}
 
 <div class="actions">

@@ -934,9 +934,15 @@ def build_scenario_page(result: dict, fields: dict, gr: dict = None) -> str:
         credit_disp  = "Insufficient Data"
         credit_class = "credit-banner-amount insufficient"
 
-    if isinstance(regular_val, (int, float)):
+    # Label follows the method whose credit is shown (fix: previously showed "Regular"
+    # whenever a Regular value existed, even when the ASC amount was the one shown).
+    _is_num = lambda v: isinstance(v, (int, float))
+    shows_asc = (_is_num(asc_val) and _is_num(recommended) and recommended == asc_val
+                 and not (_is_num(regular_val) and recommended == regular_val
+                          and str(fields.get("method_choice", "")) != "asc"))
+    if _is_num(regular_val) and not shows_asc:
         method_str = "Regular Credit Method — 280C reduced credit (15.8%)"
-    elif isinstance(asc_val, (int, float)):
+    elif _is_num(asc_val):
         method_str = "Alternative Simplified Credit (ASC) — 280C applied (feasibility estimate)"
     else:
         method_str = "Insufficient data — see notes below"

@@ -10,11 +10,12 @@ import io
 
 import openpyxl
 from openpyxl.styles import Alignment, Font, PatternFill
+from openpyxl.worksheet.datavalidation import DataValidation
 
 from study import CATEGORIES
 
 TEMPLATE_HEADERS = {
-    "wages":    ["Employee Name", "Job Title", "State", "Total Taxable Wages", "Qualified %"],
+    "wages":    ["Employee Name", "Officer (Yes/No)", "Job Title", "State", "Total Taxable Wages", "Qualified %"],
     "supplies": ["Vendor Name", "Type", "State", "Amount Used for R&D"],
     "cloud":    ["Vendor Name", "Type", "State", "Amount Used for R&D"],
     "contract": ["Contractor Name", "Work Performed", "State", "Amount Paid", "Qualified %"],
@@ -31,6 +32,7 @@ def template_bytes():
         "",
         "Fill in one row per employee / vendor / contractor on each tab, then upload this file on step 4.",
         "Qualified % and R&E %: enter as a percentage (e.g. 50%). Leave a row blank to skip it.",
+        "Wages – Officer (Yes/No): choose Yes for corporate officers (used for Form 6765 line 38). Blank = No.",
         "Supplies and Computer / Cloud: enter only the amount used for R&D (no percentage).",
         "U.S. contract research: enter the full amount paid – the app applies the 65% limit.",
         "Foreign contractors are kept outside the credit (Section 174, 15-year amortization).",
@@ -50,6 +52,12 @@ def template_bytes():
             c.font, c.fill = head_font, head_fill
             c.alignment = Alignment(horizontal="center")
             s.column_dimensions[c.column_letter].width = 30 if col <= 2 else 20
+        if cat == "wages":
+            dv = DataValidation(type="list", formula1='"Yes,No"', allow_blank=True)
+            dv.error, dv.errorTitle = "Choose Yes or No", "Officer"
+            s.add_data_validation(dv)
+            dv.add("B2:B201")
+            s.column_dimensions["B"].width = 16
         for r in range(2, 202):
             for col, h in enumerate(headers, 1):
                 if "%" in h:
@@ -103,6 +111,7 @@ def parse_upload(file_storage):
         headers = [str(h or "").strip() for h in rows[0]]
         i_name = 0
         i_col2 = _find(headers, "job title", "work performed", "type")
+        i_off = _find(headers, "officer") if cfg.get("officer") else None
         i_state = _find(headers, "state") if cat != "foreign" else _find(headers, "country")
         if i_state is None:
             i_state = _find(headers, "country", "state")
@@ -117,6 +126,8 @@ def parse_upload(file_storage):
                 continue
             row = {"name": str(name or "").strip(), "col2": str(cell(i_col2) or "").strip(),
                    "state": str(cell(i_state) or "").strip(), "amount": _amt(amount), "pct": ""}
+            if cfg.get("officer"):
+                row["officer"] = "Yes" if str(cell(i_off) or "").strip().lower() in ("yes", "y", "true", "x") else "No"
             if cfg["pct"]:
                 row["pct"] = _pct(cell(i_pct))
             elif i_pct is not None and cell(i_pct) not in (None, ""):

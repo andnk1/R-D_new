@@ -1,11 +1,14 @@
 {% extends "base.html" %}
-{% macro table(cat) %}{% set cfg = cats[cat] %}{% set rs = rows[cat] %}
-<div class="lines" data-cat="{{ cat }}" {{ '' if cfg.pct else 'data-nopct=1' }}>
+{% macro table(cat) %}{% set cfg = cats[cat] %}{% set rs = rows[cat] %}{% set off = 1 if cfg.officer else 0 %}
+<div class="lines{{ ' haswages' if cfg.officer }}" data-cat="{{ cat }}" {{ '' if cfg.pct else 'data-nopct=1' }}>
 <input type="hidden" name="{{ cat }}-count" value="{{ rs|length }}">
-<table class="qt"><thead><tr>{% for col in cfg.cols %}<th{{ ' class=r' if loop.index > 3 }}>{{ col }}</th>{% endfor %}</tr></thead>
+<table class="qt"><thead><tr>{% for col in cfg.cols %}<th{{ ' class=r' if loop.index > 3 + off }}{{ ' class=offc' if cfg.officer and loop.index == 2 }}>{{ col }}{% if cfg.officer and loop.index == 2 %} <span class="hint6765">6765 line 38</span>{% endif %}</th>{% endfor %}</tr></thead>
 <tbody>
 {% for r in rs %}{% set i = loop.index0 %}<tr>
   <td><input name="{{ cat }}-{{ i }}-name" value="{{ r.name }}"></td>
+  {% if cfg.officer %}<td class="offc"><select name="{{ cat }}-{{ i }}-officer" class="off">
+    <option value="No"{{ ' selected' if (r.officer or 'No') != 'Yes' }}>No</option>
+    <option value="Yes"{{ ' selected' if r.officer == 'Yes' }}>Yes</option></select></td>{% endif %}
   <td><input name="{{ cat }}-{{ i }}-col2" value="{{ r.col2 }}"></td>
   <td><input class="st" name="{{ cat }}-{{ i }}-state" value="{{ r.state }}"></td>
   <td><input class="amt" name="{{ cat }}-{{ i }}-amount" value="{{ r.amount }}"></td>
@@ -14,7 +17,7 @@
 {% endfor %}</tbody>
 <tfoot>
   <tr class="lt-row"><td colspan="{{ cfg.cols|length - 1 }}" class="r"><b>Total of lines</b></td><td class="r"><b class="lt">$0</b></td></tr>
-  <tr class="to-row"><td colspan="3"><b>Or enter total only</b><div class="hint" style="margin:2px 0 0">If entered, this replaces the lines above.</div></td>
+  <tr class="to-row"><td colspan="{{ 3 + off }}"><b>Or enter total only</b><div class="hint" style="margin:2px 0 0">If entered, this replaces the lines above.</div></td>
     <td><input class="amt tamt" name="{{ cat }}-total_amount" value="{{ e[cat].total_amount }}" placeholder="{{ cfg.total_label }}"></td>
     {% if cfg.pct %}<td><input class="pct tpct" name="{{ cat }}-total_pct" value="{{ e[cat].total_pct }}" placeholder="%"></td>{% endif %}
     <td class="r calc tres">—</td></tr>
@@ -59,6 +62,7 @@
         <!-- WAGES -->
         <section class="pane" id="p-wages" {{ "" if tab == "wages" else "hidden" }}>
           <p class="lead">Wages generally qualify only for <b>actual conduct of research, direct supervision, or direct support</b>. General management, finance, payroll, sales, and indirect administrative support generally do not qualify.</p>
+          <p class="hint" style="margin:0 0 10px">Officer: choose <b>Yes</b> for corporate officers. Their qualified wages are reported separately on Form 6765, line 38 (officers' wages included in QREs). If wages are entered as a total only, line 38 is left blank.</p>
           {{ table('wages') }}
         </section>
 

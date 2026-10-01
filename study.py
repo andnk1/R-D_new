@@ -35,8 +35,8 @@ ENTITY_TYPES = {
 
 # Expense categories: key -> settings for the screen and the workbook
 CATEGORIES = {
-    "wages": dict(tab="Wages", pct=True, sheet="Wages QRE",
-                  cols=["Employee name", "Job title", "State", "Total taxable wages ($)", "Qualified %", "Qualified wages ($)"],
+    "wages": dict(tab="Wages", pct=True, sheet="Wages QRE", officer=True,
+                  cols=["Employee name", "Officer", "Job title", "State", "Total taxable wages ($)", "Qualified %", "Qualified wages ($)"],
                   total_label="Total taxable wages ($)"),
     "supplies": dict(tab="Supplies", pct=False, sheet="Supplies QRE",
                      cols=["Vendor name", "Type", "State", "Amount used for R&D ($)", "Qualified supplies ($)"],
@@ -66,6 +66,7 @@ def blank_study():
         "history": {"gr": {}, "qre": {}, "pte": "no", "pte_years": []},
         "expenses": {k: {"rows": [], "total_amount": "", "total_pct": ""} for k in CATEGORIES},
         "other": {"show_payroll": "yes"},
+        "method": "",            # "" = engine's recommended method; "regular" / "asc" = preparer's choice
         "completed": {},
         "run": None,
     }
@@ -139,6 +140,22 @@ def category_amount(study, cat):
         p = (num(r.get("pct")) or 0.0) if has_pct else 100.0
         total += a * p / 100.0
     return total, "lines"
+
+
+def officer_wages(study):
+    """Qualified wages on wage lines marked Officer = Yes (Form 6765 line 38).
+    None when wages were entered as a total only (officer split unknown)."""
+    _, mode = category_amount(study, "wages")
+    if mode == "total":
+        return None
+    total = 0.0
+    for r in study["expenses"]["wages"].get("rows", []):
+        if (r.get("officer") or "").strip().lower() != "yes":
+            continue
+        a = num(r.get("amount"))
+        if a is not None:
+            total += a * (num(r.get("pct")) or 0.0) / 100.0
+    return total
 
 
 def line_count(study, cat):
@@ -221,9 +238,36 @@ def review_flags(study):
 # Run the engine + build the client-facing study (HTML, PDF, workbook)
 # ---------------------------------------------------------------------------
 
-def run_study(study, folder):
+METHOD_NAMES = {"regular": "Regular Credit Method", "asc": "Alternative Simplified Credit (ASC)"}
+
+
+def apply_method_choice(study, result):
+    """Engine math is unchanged. If the preparer chose the other method on the Review page,
+    the study (and Form 6765) show that method's credit instead of the higher one.
+    Returns the method actually used: "regular", "asc" or None."""
+    values = {"regular": result["regular_credit_280c"], "asc": result["asc_credit_280c"]}
+    engine_pick = None
+    if result["recommended_credit"] is not None:
+        engine_pick = "asc" if result["recommended_note"].startswith("ASC") else "regular"
+    choice = study.get("method") or ""
+    if choice in values and values[choice] is not None and choice != engine_pick:
+        result["recommended_credit"] = values[choice]
+        result["recommended_note"] = ("ASC Method" if choice == "asc" else "Regular Method") + \
+            " selected by preparer (other method gives a higher credit)"
+        return choice
+    return engine_pick
+
+
+def calculate(study):
+    """Engine result with the preparer's method choice applied -> (data, result, method_used)."""
     data = engine_data(study)
     result = calc.calculate(data)
+    used = apply_method_choice(study, result)
+    return data, result, used
+
+
+def run_study(study, folder):
+    data, result, used = calculate(study)
 
     xlsx_path = os.path.join(folder, "rd_credit_calculator_v2_scenario_1.xlsx")
     calc.save_xlsx(result, data, xlsx_path)
@@ -234,6 +278,7 @@ def run_study(study, folder):
         with open(logo, "rb") as f:
             gen.LOGO_B64 = "data:image/png;base64," + base64.b64encode(f.read()).decode()
     fields = gen.load_company_info([xlsx_path])
+    fields["method_choice"] = used or ""
     body = gen.build_cover_pages(fields) + gen.build_content_pages(fields)
     body += gen.build_scenario_page(gen.load_scenario(xlsx_path), fields, gen.load_gross_receipts(xlsx_path))
     company = fields.get("company_name", "Company")
@@ -261,13 +306,24 @@ def run_study(study, folder):
 
     safe = re.sub(r"[^A-Za-z0-9_]", "_", company)
     rec = result["recommended_credit"]
-    note = result.get("recommended_note", "")
     if rec is None:
         method = "Insufficient data — see notes below"
-    elif note.startswith("ASC"):
+    elif used == "asc":
         method = "Alternative Simplified Credit (ASC) — 280C applied (feasibility estimate)"
     else:
         method = "Regular Credit Method — 280C reduced credit (15.8%)"
+
+    # The method NOT used in the study – shown in its own box on the Review page
+    other = None
+    if used:
+        o = "regular" if used == "asc" else "asc"
+        ov = result["regular_credit_280c"] if o == "regular" else result["asc_credit_280c"]
+        ost = result["regular_method_status"] if o == "regular" else result["asc_method_status"]
+        uv = rec
+        other = {"key": o, "name": METHOD_NAMES[o], "value": ov, "status": ost,
+                 "used_name": METHOD_NAMES[used],
+                 "higher": ov is not None and ov > uv,
+                 "diff": (ov - uv) if ov is not None else None}
 
     return {
         "ran_at": datetime.now().strftime("%b %d, %Y %I:%M %p"),
@@ -279,5 +335,6 @@ def run_study(study, folder):
         "regular": result["regular_credit_280c"], "regular_status": result["regular_method_status"],
         "asc": result["asc_credit_280c"], "asc_status": result["asc_method_status"],
         "recommended": rec, "method": method, "warnings": result["warnings"],
+        "method_used": used, "other": other,
         "pdf_ok": pdf_ok, "pdf_error": pdf_error,
     }
