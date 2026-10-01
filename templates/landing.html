@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}R&amp;D Tax Credit{% endblock %}
+{% block body %}
+<div class="landing">
+  <h1>R&amp;D Tax Credit</h1>
+  <div class="choices">
+    <div class="choice">
+      <div class="cb"><div><div class="nm">Feasibility Study</div><p class="desc">A preliminary estimate of the federal Section 41 R&amp;D tax credit for tax years beginning in 2025 or later. Walk through six short steps – company and filing profile, the project, gross receipts and prior-year QREs, current-year qualified expenses, and elections – with explanations at every step. The app applies the Regular Credit and ASC rules, shows the estimated credit, and produces the client-facing feasibility study (PDF) and calculation workbook.</p></div></div>
+      <div class="ft">
+        <a class="btn" href="{{ url_for('new_study') }}">Start new study</a>
+        {% if has_study %}&nbsp; <a class="backbtn" href="{{ url_for('company') }}">Continue current study</a>{% endif %}
+      </div>
+    </div>
+    <div class="choice off">
+      <div class="cb"><div><div class="nm">R&amp;D Study</div><p class="desc">The full R&amp;D tax credit study: detailed business-component documentation, the four-part test for each project, supporting records, and the complete credit calculation for filing Form 6765. Coming soon.</p></div></div>
+      <div class="ft"><span class="soonpill">Coming soon</span></div>
+    </div>
+  </div>
+  <p class="disclaimer">Internal tool – CFO Associates. Studies are not stored: answers are kept temporarily while you work and are cleared after 24 hours or when you start a new study.</p>
+</div>
+{% endblock %}

@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% block main %}
+<form method="post" id="stepform">
+
+    <h1 class="pg">Gross Receipts &amp; Prior-Year QREs</h1>
+    <p class="pgsub">Step 3 of 6 · History the credit methods and the payroll tax test rely on.</p>
+
+    <div class="scope">
+      <b>Page purpose.</b> Collect historical QRE and gross-receipts data once, using actual tax-year labels. The app uses the data
+      to determine which credit methods can be calculated and whether the Qualified Small Business payroll option may be available.
+      <br><br>
+      <b>Important data-entry rule:</b> <span class="zero">0</span> means the amount is known to be zero.
+      <span class="blank">Blank</span> means the information is unavailable or has not been entered. The calculation engine does not
+      treat blank and zero as the same fact.
+    </div>
+
+    <!-- ============ HISTORY GRID ============ -->
+    <div class="card">
+      <div class="cardhead">Gross Receipts &amp; QRE History</div>
+      <div class="cardbody">
+        <table class="hist">
+          <thead>
+            <tr><th style="width:14%">Tax year</th><th>Gross receipts ($)</th><th style="width:14%">Status</th><th>Qualified research expenses ($)</th><th style="width:14%">Status</th></tr>
+          </thead>
+          <tbody id="histbody">
+            {% for y in years %}
+            <tr{% if loop.first %} class="cur"{% endif %}>
+              <td><b>{{ y }}</b>{% if loop.first %} <span class="curtag">study year</span>{% endif %}</td>
+              <td><input class="amt hist" name="gr_{{ y }}" value="{{ h.gr.get(y|string, '') }}" placeholder="—"></td><td class="stat"></td>
+              {% if loop.first %}<td class="fromstep">Calculated on step 4</td><td></td>
+              {% else %}<td><input class="amt hist" name="qre_{{ y }}" value="{{ h.qre.get(y|string, '') }}" placeholder="—"></td><td class="stat"></td>{% endif %}
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <details class="explain">
+          <summary>Explain this – current-year gross receipts</summary>
+          <div class="exbody">
+            <p>Enter the actual gross-receipts amount for the study year. The app uses the amount in payroll eligibility and, when applicable, the credit calculation.</p>
+            <p>Gross receipts include items such as interest, dividends, rents, royalties, and other income depending on the taxpayer.</p>
+            <p>For the QSB payroll-tax election, current-year gross receipts must be <b>less than $5 million</b>. Exactly $5 million does not satisfy the "less than $5 million" test.</p>
+            <p><b>What happens above $5 million:</b> the taxpayer is not eligible for the QSB payroll-tax election for that year.</p>
+            <div class="pitfall"><b class="pl">Common confusion:</b> do not mix the $5 million QSB payroll threshold with other gross-receipts tests. The Section 174A small-business transition uses the Section 448(c) test (for 2025, generally $31 million average annual gross receipts, subject to the detailed rules), and the "eligible small business" AMT rule for the research credit uses a different threshold.</div>
+            <div class="ref">IRS: <a href="https://www.irs.gov/instructions/i6765" target="_blank">Instructions for Form 6765</a> · <a href="https://www.irs.gov/credits-deductions/research-credit-against-payroll-tax-for-small-businesses" target="_blank">IRS QSB payroll tax credit overview</a></div>
+          </div>
+        </details>
+        <details class="explain">
+          <summary>Explain this – credit methods, history needed, and the fixed-base percentage</summary>
+          <div class="exbody">
+            <table class="mtable">
+              <thead><tr><th>Method</th><th>Calculation</th><th>What history you need</th></tr></thead>
+              <tbody>
+                <tr><td><b>Regular credit: first 5 QRE years</b></td><td>Base = 3% × <b>average annual gross receipts for the preceding 4 years</b>. Credit is generally 20% × <b>the lesser of</b> (current QREs − base) <b>or</b> 50% of current QREs.</td><td>Prior 4 years' gross receipts, including documented zero years.</td></tr>
+                <tr><td><b>Regular credit: 6th–10th QRE years</b></td><td>Same credit formula, but the fixed-base percentage phases from 3% toward a percentage calculated from historical QREs and receipts.</td><td>More detailed historical QRE and receipts data.</td></tr>
+                <tr><td><b>Regular credit: 11th QRE year onward</b></td><td>Same formula, using the historical fixed-base percentage under the startup rules (capped at 16%).</td><td>Historical QRE and receipts data.</td></tr>
+                <tr><td><b>Alternative simplified credit (ASC): any age</b></td><td>Generally 14% × [current QREs − 50% of the average QREs for the prior 3 years]. If any of those three years had <b>no QREs</b>, use 6% × current QREs instead.</td><td>Prior 3 years' QREs; <b>no sales figures</b> needed.</td></tr>
+              </tbody>
+            </table>
+            <h4 style="margin-top:16px">Regular credit: startup rules and the fixed-base percentage</h4>
+            <p><b>For companies under the startup rules:</b> count tax years with QREs, including years when no credit was claimed.</p>
+            <p><b>Ratio = total QREs for the specified years ÷ total gross receipts for those same years.</b></p>
+            <table class="mtable fbp">
+              <thead><tr><th>Current QRE year</th><th>Fixed-base percentage</th></tr></thead>
+              <tbody>
+                <tr><td><b>1–5</b></td><td>3%</td></tr>
+                <tr><td><b>6</b></td><td>Ratio for years <b>4–5</b> × 1/6</td></tr>
+                <tr><td><b>7</b></td><td>Ratio for years <b>5–6</b> × 1/3</td></tr>
+                <tr><td><b>8</b></td><td>Ratio for years <b>5–7</b> × 1/2</td></tr>
+                <tr><td><b>9</b></td><td>Ratio for years <b>5–8</b> × 2/3</td></tr>
+                <tr><td><b>10</b></td><td>Ratio for years <b>5–9</b> × 5/6</td></tr>
+                <tr><td><b>11 onward</b></td><td>Ratio for <b>any selected 5 years</b> from years 5–10</td></tr>
+              </tbody>
+            </table>
+            <p><b>Maximum: 16%.</b> Round to the nearest <b>0.01 percentage point</b>.</p>
+
+            <h4>Who is a "startup"?</h4>
+            <p>"Startup" here is a special tax definition – not necessarily a newly formed company. A company falls under the Regular R&amp;D credit startup rules if either:</p>
+            <ul>
+              <li>its first tax year with <b>both</b> gross receipts and QREs began <b>after 1983</b>; or</li>
+              <li>it had both gross receipts and QREs in <b>fewer than three tax years during 1984–1988</b>.</li>
+            </ul>
+            <p>Practically: a company formed in 2000, 2015, or 2025 generally falls under these rules, even if it is now an established business.</p>
+            <p>Then count its years with QREs to determine the fixed-base percentage:</p>
+            <ul>
+              <li>First five QRE years: <b>3%</b>.</li>
+              <li>Sixth QRE year onward: use the historical formulas in the fixed-base table above.</li>
+            </ul>
+            <div class="pitfall">It does <b>not</b> restart at 3% simply because this is the company's first year claiming the credit. Prior qualifying research years count.</div>
+            <div class="ref">IRS: <a href="https://www.irs.gov/instructions/i6765" target="_blank">Instructions for Form 6765 – Regular Credit (Section A, line 6 fixed-base percentage), ASC, and payroll eligibility</a></div>
+          </div>
+        </details>
+      </div>
+    </div>
+
+    <!-- ============ PRIOR CREDIT HISTORY ============ -->
+    <div class="card">
+      <div class="cardhead">Prior Credit History</div>
+      <div class="cardbody">
+        <div class="grid2">
+          <div>
+            <p class="q">Has the company claimed the R&amp;D credit in the past?</p>
+            <div class="seg">
+              <label><input type="radio" name="prior" value="yes" {{ "checked" if h.prior == "yes" }}><span>Yes</span></label>
+              <label><input type="radio" name="prior" value="no" {{ "checked" if h.prior == "no" }}><span>No</span></label>
+              <label><input type="radio" name="prior" value="unsure" {{ "checked" if h.prior == "unsure" }}><span>Unsure</span></label>
+            </div>
+            <details class="explain">
+              <summary>Explain this – why we ask</summary>
+              <div class="exbody">
+                <p>Helps interpret prior QRE data and election history. The app should not assume "No prior credit" means there were no research expenses.</p>
+              </div>
+            </details>
+          </div>
+          <div>
+            <p class="q">Has the company made a payroll-tax credit election in any prior year?</p>
+            <div class="seg">
+              <label><input type="radio" name="pte" value="yes" {{ "checked" if h.pte == "yes" }}><span>Yes</span></label>
+              <label><input type="radio" name="pte" value="no" {{ "checked" if h.pte == "no" }}><span>No</span></label>
+              <label><input type="radio" name="pte" value="unsure" {{ "checked" if h.pte == "unsure" }}><span>Unsure</span></label>
+            </div>
+            <div id="pteyears" style="{{ "" if h.pte == "yes" else "display:none;" }}margin-top:12px">
+              <label class="fl">Election years</label>
+              <div class="yrchips" id="yrchips">
+                {% for y in years[1:6] %}<label class="chip"><input type="checkbox" name="pte_years" value="{{ y }}" {{ "checked" if y|string in h.pte_years }}><span>{{ y }}</span></label>{% endfor %}
+              </div>
+            </div>
+            <details class="explain">
+              <summary>Explain this – why we ask</summary>
+              <div class="exbody">
+                <p>The payroll election is limited to five tax years, including certain controlled-group elections.</p>
+              </div>
+            </details>
+            <div class="enote">Note: calculations are not currently included in the study calculation engine; additional calculations to be added soon.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <a class="backbtn" href="{{ url_for('projects') }}">← Back</a>
+      <div><button class="secondary" name="go" value="stay">Save</button> &nbsp; <button class="btn" name="go" value="next">Save &amp; continue → Qualified R&amp;D Expenses</button></div>
+    </div>
+  </form>
+{% endblock %}

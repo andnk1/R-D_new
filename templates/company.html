@@ -1,0 +1,290 @@
+{% extends "base.html" %}
+{% block main %}
+<form method="post" id="stepform">
+
+    <h1 class="pg">Company &amp; Filing Profile</h1>
+    <p class="pgsub">Step 1 of 6 · Who the taxpayer is, when the research started, and where the tax return stands.</p>
+
+    <div class="scope">
+      <b>Scope of this application.</b> This application is designed for federal R&amp;D credit feasibility studies for
+      <b>tax years beginning in 2025 or later</b>. It assumes domestic research and experimental (R&amp;E) expenditures are
+      currently deducted under IRC Section 174A rather than separately modeled as a capitalization/amortization study.
+      <br><br>
+      It primarily evaluates the federal <b>Section 41 research credit</b>. It does not attempt to identify every domestic R&amp;E
+      expenditure that may fall under Section 174A but fail to qualify for the Section 41 credit. Foreign research costs are
+      addressed separately because foreign R&amp;E expenditures may remain subject to 15-year amortization under Section 174.
+      <br><span class="hint">Reference: <a href="https://www.irs.gov/instructions/i6765" target="_blank" style="color:var(--navy)">IRS Instructions for Form 6765</a></span>
+    </div>
+
+    <!-- ============ CARD 1: COMPANY ============ -->
+    <div class="card">
+      <div class="cardhead">Company</div>
+      <div class="cardbody">
+        <div class="grid2">
+          <div class="field">
+            <label class="fl">Legal business name</label>
+            <input type="text" name="name" value="{{ c.name }}" placeholder="Legal business name">
+          </div>
+          <div class="field">
+            <label class="fl">EIN <span class="opt">(optional)</span></label>
+            <input type="text" name="ein" value="{{ c.ein }}" placeholder="XX-XXXXXXX">
+          </div>
+
+          <div class="field full">
+            <label class="fl">Entity type</label>
+            <select id="entity" name="entity" style="max-width:420px">
+              {% for k, v in entities.items() %}<option value="{{ k }}" {{ "selected" if c.entity == k }}>{{ v[1] }}</option>{% endfor %}
+            </select>
+            <details class="explain">
+              <summary>Explain this – why entity type matters</summary>
+              <div class="exbody">
+                <p>The research activity can qualify <b>regardless of entity type</b>, but the credit is reported and used differently.</p>
+                                <h4>C corporation</h4>
+                <p>The corporation computes the credit on Form 6765 and claims it as a general business credit at the corporate level (generally through Form 3800). The benefit reduces the corporation's federal income-tax liability, subject to the general business credit rules.</p>
+                <h4>S corporation / partnership</h4>
+                <p>The entity computes the research credit on Form 6765. The income-tax credit generally passes through to shareholders or partners on Schedule K-1 and is ultimately subject to owner-level limitations. A qualified-small-business payroll-tax election, when available, is made at the entity level.</p>
+                <h4>Sole proprietor / single-member LLC</h4>
+                <p>The owner claims the business activity and related credit on the owner's return, generally using Form 6765 and Form 3800 (Form 3800 pulls together separate business credits such as R&amp;D, investment and hiring incentives). The activity is commonly reported on Schedule C.</p>
+                <div class="ref">IRS: <a href="https://www.irs.gov/instructions/i6765" target="_blank">Instructions for Form 6765</a></div>
+              </div>
+            </details>
+          </div>
+
+          <div class="field">
+            <label class="fl">Primary industry</label>
+            <input type="text" name="industry" value="{{ c.industry }}" placeholder="e.g. Software / Artificial Intelligence">
+            <p class="hint">Helps frame the project description and common R&amp;D fact patterns. Industry alone does not determine eligibility.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ CARD 2: TAX YEAR & HISTORY ============ -->
+    <div class="card">
+      <div class="cardhead">Tax Year &amp; Company History</div>
+      <div class="cardbody">
+        <div class="grid2">
+          <div class="field">
+            <label class="fl">Study tax year</label>
+            <select id="taxyear" name="tax_year">
+              {% for y in ["2025", "2026", "2027"] %}<option value="{{ y }}" {{ "selected" if c.tax_year == y }}>{{ y }}</option>{% endfor %}
+            </select>
+            <p class="hint">Tax year <b>beginning</b> in this calendar year.</p>
+          </div>
+          <div class="field">
+            <label class="fl">Tax year ends in</label>
+            <select id="fye" name="fye">
+              {% for mo in ["January","February","March","April","May","June","July","August","September","October","November","December"] %}<option value="{{ loop.index }}" {{ "selected" if c.fye == loop.index|string }}>{{ mo }}</option>{% endfor %}
+            </select>
+            <p class="hint">Used to determine whether the return can still be filed on time.</p>
+          </div>
+
+          <div class="field full">
+            <details class="explain">
+              <summary>Explain this – why the app starts at 2025 (Section 174 vs. 174A)</summary>
+              <div class="exbody">
+                <div class="schematic">
+                  <svg viewBox="0 0 760 170" role="img" aria-label="Section 174 treatment timeline">
+                    <g font-family="Segoe UI, sans-serif" font-size="12">
+                      <line x1="20" y1="60" x2="740" y2="60" stroke="#9aa3b2" stroke-width="2"/>
+                      <rect x="20" y="30" width="170" height="60" rx="6" fill="#F1F5F4" stroke="#446B67"/>
+                      <text x="105" y="52" text-anchor="middle" font-weight="700" fill="#294f4c">2021 and earlier</text>
+                      <text x="105" y="70" text-anchor="middle" fill="#294f4c">R&amp;E could be deducted</text>
+                      <text x="105" y="84" text-anchor="middle" fill="#294f4c" font-size="11">currently</text>
+                      <rect x="210" y="30" width="250" height="60" rx="6" fill="#fdf0f0" stroke="#8b0000"/>
+                      <text x="335" y="52" text-anchor="middle" font-weight="700" fill="#8b0000">2022 – 2024 (old §174)</text>
+                      <text x="335" y="70" text-anchor="middle" fill="#8b0000">Capitalize: domestic 5 yrs,</text>
+                      <text x="335" y="84" text-anchor="middle" fill="#8b0000" font-size="11">foreign 15 yrs</text>
+                      <rect x="480" y="30" width="260" height="60" rx="6" fill="#EFEFF7" stroke="#3C69AB" stroke-width="2"/>
+                      <text x="610" y="52" text-anchor="middle" font-weight="700" fill="#003366">2025 and later (§174A)  ← this app</text>
+                      <text x="610" y="70" text-anchor="middle" fill="#003366">Domestic R&amp;E deducted currently</text>
+                      <text x="610" y="84" text-anchor="middle" fill="#003366" font-size="11">or elect 60 months · foreign still 15 yrs</text>
+                      <text x="20" y="120" fill="#374151" font-weight="700">What did NOT change:</text>
+                      <text x="160" y="120" fill="#374151">the Section 41 credit calculation itself existed in every period.</text>
+                      <text x="20" y="142" fill="#374151" font-weight="700">Transition:</text>
+                      <text x="100" y="142" fill="#374151">unamortized 2022–2024 domestic balances may be recovered in 2025, or ratably over 2025–2026 (Rev. Proc. 2025-28).</text>
+                    </g>
+                  </svg>
+                </div>
+                <h4>Why 2025 and later</h4>
+                <p>For domestic research or experimental (R&amp;E) costs, new IRC Section 174A restores a current deduction for tax years beginning after December 31, 2024. Taxpayers may instead elect to capitalize and amortize domestic R&amp;E over at least 60 months. The feasibility app assumes the current-deduction path for domestic R&amp;E.</p>
+                <h4>What was different in 2022–2024</h4>
+                <p>Domestic specified research expenditures were generally required to be capitalized and amortized over 5 years under the prior Section 174 rules (foreign R&amp;E over 15 years). The Section 41 credit did not disappear; the major change was the deduction/capitalization treatment that interacts with the credit.</p>
+                <h4>2022–2024 balances already capitalized</h4>
+                <p>Rev. Proc. 2025-28 allows a taxpayer with remaining unamortized domestic 2022–2024 Section 174 amounts to recover the remaining balance either entirely in the first tax year beginning after December 31, 2024, or ratably over that year and the next. This transition is separate from whether the taxpayer claimed the Section 41 credit.</p>
+                <div class="pitfall"><p><b class="pl">Expired relief:</b> eligible small-business taxpayers had special OBBBA relief to retroactively apply Section 174A to 2022–2024 through amended returns / AARs. That window generally closed on the earlier of the normal refund-claim deadline or <b>July 6, 2026</b>, and is no longer available.</div>
+                <h4>Form 6765 Section G (business components)</h4>
+                <p>Optional for tax years beginning before 2026; generally required for tax years beginning after 2025. Section G is <b>not</b> required if all three are true: (1) total QREs are $1.5 million or less at the controlled-group level; (2) average annual gross receipts for the prior 3 tax years are $50 million or less; and (3) the credit is reported on an original return.</p>
+                <div class="ref">IRS: <a href="https://www.irs.gov/instructions/i6765" target="_blank">Instructions for Form 6765</a> · <a href="https://www.irs.gov/pub/irs-drop/rp-25-28.pdf" target="_blank">Rev. Proc. 2025-28</a> · <a href="https://www.irs.gov/instructions/i4562" target="_blank">Instructions for Form 4562</a></div>
+              </div>
+            </details>
+          </div>
+
+          <div class="divider full" style="margin:4px 0"></div>
+
+          <div class="field">
+            <label class="fl">Year operations began</label>
+            <input type="number" name="year_started" value="{{ c.year_started }}" min="1900" max="2100" placeholder="e.g. 2020">
+          </div>
+          <div class="field">
+            <label class="fl">Year R&amp;D activity began</label>
+            <input type="number" name="year_research_started" value="{{ c.year_research_started }}" min="1900" max="2100" placeholder="e.g. 2022">
+            <p class="hint">First year the company performed the research activity – not the year it was formed.</p>
+          </div>
+          <div class="field full">
+            <details class="explain">
+              <summary>Explain this – why the year R&amp;D began matters (ASC and Regular credit)</summary>
+              <div class="exbody">
+                <p>The ASC calculation method generally looks to the prior three years of QREs. If the taxpayer had no QREs in any one of the prior three years, the special 6% ASC rule may apply. The Regular Credit start-up rules also depend on the taxpayer's early years with QREs, not simply the company's age.</p>
+                <p>Normally, ASC is calculated as <b>14% × (current-year QREs − 50% of the average QREs for the prior 3 years)</b>. But if any one of those three prior years had zero QREs, the normal ASC formula is replaced by <b>6% × current-year QREs</b>.</p>
+                <table class="mtable">
+                  <thead><tr><th>Method</th><th>Calculation</th><th>What history you need</th></tr></thead>
+                  <tbody>
+                    <tr><td><b>Regular credit: first 5 QRE years</b></td><td>Base = 3% × <b>average annual gross receipts for the preceding 4 years</b>. Credit is generally 20% × <b>the lesser of</b> (current QREs − base) <b>or</b> 50% of current QREs.</td><td>Prior 4 years' gross receipts, including documented zero years.</td></tr>
+                    <tr><td><b>Regular credit: 6th–10th QRE years</b></td><td>Same credit formula, but the fixed-base percentage phases from 3% toward a percentage calculated from historical QREs and receipts.</td><td>More detailed historical QRE and receipts data.</td></tr>
+                    <tr><td><b>Regular credit: 11th QRE year onward</b></td><td>Same formula, using the historical fixed-base percentage under the startup rules (capped at 16%).</td><td>Historical QRE and receipts data.</td></tr>
+                    <tr><td><b>Alternative simplified credit (ASC): any age</b></td><td>Generally 14% × [current QREs − 50% of the average QREs for the prior 3 years]. If any of those three years had <b>no QREs</b>, use 6% × current QREs instead.</td><td>Prior 3 years' QREs; <b>no sales figures</b> needed.</td></tr>
+                  </tbody>
+                </table>
+                                <div class="ref">IRS: <a href="https://www.irs.gov/instructions/i6765" target="_blank">Instructions for Form 6765 – Section B (ASC) and Section A (Regular)</a></div>
+              </div>
+            </details>
+          </div>
+
+          <div class="field full">
+            <label class="fl">First year the company had gross receipts</label>
+            <input type="number" name="first_receipts_year" value="{{ c.first_receipts_year }}" min="1900" max="2100" placeholder="e.g. 2021" style="max-width:420px">
+            <p class="hint">Not always the same year the company was formed. Leave blank if the company has never had gross receipts.</p>
+            <details class="explain">
+              <summary>Explain this – the Qualified Small Business (payroll tax) receipts test</summary>
+              <div class="exbody">
+                <p>This date is a core part of the <b>Qualified Small Business (QSB)</b> payroll-tax credit test. A QSB generally must have current-year gross receipts of <b>less than $5 million</b> and <b>no gross receipts for any tax year before the five-tax-year period</b> ending with the credit year.</p>
+                <p>For a 2025 credit year, the five-year period is 2021–2025. Gross receipts before 2021 generally prevent QSB payroll status. For a 2026 credit year, gross receipts before 2022 generally prevent QSB payroll status.</p>
+                                <p><b>No earlier gross receipts?</b> That does not hurt the test – a pre-revenue startup can satisfy the receipt-history requirement. The app evaluates the dates automatically.</p>
+                <div class="pitfall"><b class="pl">Pitfalls:</b> a financing round is not automatically gross receipts – equity contributions generally are not, while service revenue, grants, token sales, interest and other receipts may need analysis. Predecessors and controlled / common-control entities can also affect the test.</div>
+                <div class="ref">IRS: <a href="https://www.irs.gov/instructions/i6765" target="_blank">Instructions for Form 6765</a> · <a href="https://www.irs.gov/credits-deductions/research-credit-against-payroll-tax-for-small-businesses" target="_blank">Research credit against payroll tax for small businesses</a></div>
+              </div>
+            </details>
+            <div class="enote">Note: calculations are not currently included in the study calculation engine; additional calculations to be added soon. (The engine currently tests QSB status from the yearly gross-receipts history entered on step 3.)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ CARD 3: OWNERSHIP ============ -->
+    <div class="card">
+      <div class="cardhead">Ownership &amp; Control</div>
+      <div class="cardbody">
+        <p class="q">Is the company under common ownership or control with any other business?</p>
+        <div class="seg">
+          <label><input type="radio" name="cg" value="yes" {{ "checked" if c.cg == "yes" }}><span>Yes</span></label>
+          <label><input type="radio" name="cg" value="no" {{ "checked" if c.cg == "no" }}><span>No</span></label>
+          <label><input type="radio" name="cg" value="unsure" {{ "checked" if c.cg == "unsure" }}><span>Unsure</span></label>
+        </div>
+        <div class="warn" id="cgwarn"><b>Warning:</b> related businesses may have to be treated as one taxpayer when computing the research credit and testing the $5 million payroll-credit threshold. Additional controlled-group calculations are not currently included in the study calculation engine; additional calculations to be added soon.</div>
+        <details class="explain">
+          <summary>Explain this – controlled groups and common control</summary>
+          <div class="exbody">
+            <p>Controlled-group and common-control rules can require related businesses to be treated together when computing the research credit and when testing payroll-credit gross receipts.</p>
+            <p>The preparer provides the fact pattern; the app makes the tax determination once the aggregation calculation is added.</p>
+            <div class="pitfall"><b class="pl">Pitfall:</b> do not test the $5 million payroll threshold or the research credit using only one entity when related entities may have to be aggregated.</div>
+            <div class="ref">IRS: <a href="https://www.irs.gov/instructions/i6765" target="_blank">Instructions for Form 6765 – controlled groups</a></div>
+          </div>
+        </details>
+      </div>
+    </div>
+
+    <!-- ============ CARD 4: FILING STATUS ============ -->
+    <div class="card">
+      <div class="cardhead">Filing Status</div>
+      <div class="cardbody">
+        <div class="grid2">
+          <div>
+            <p class="q">Has the tax return for this year already been filed?</p>
+            <div class="seg">
+              <label><input type="radio" name="filed" value="yes" {{ "checked" if c.filed == "yes" }}><span>Yes</span></label>
+              <label><input type="radio" name="filed" value="no" {{ "checked" if c.filed == "no" }}><span>No</span></label>
+            </div>
+          </div>
+          <div>
+            <p class="q">Was an extension filed?</p>
+            <div class="seg">
+              <label><input type="radio" name="ext" value="yes" {{ "checked" if c.ext == "yes" }}><span>Yes</span></label>
+              <label><input type="radio" name="ext" value="no" {{ "checked" if c.ext == "no" }}><span>No</span></label>
+            </div>
+          </div>
+          <div id="timelyq" style="display:none">
+            <p class="q">Was the return filed on time (including extension)?</p>
+            <div class="seg">
+              <label><input type="radio" name="timely" value="yes" {{ "checked" if c.timely == "yes" }}><span>Yes</span></label>
+              <label><input type="radio" name="timely" value="no" {{ "checked" if c.timely == "no" }}><span>No</span></label>
+            </div>
+          </div>
+        </div>
+
+                <div class="banner status" id="statusmsg">—</div>
+        <div class="warn" id="bbawarn" style="display:none"><b>BBA partnership:</b> a BBA partnership generally cannot amend its return; changes are made through an Administrative Adjustment Request (AAR), not a normal amended return.</div>
+        
+        <details class="explain">
+          <summary>Explain this – what filing status changes (and what it doesn't)</summary>
+          <div class="exbody">
+            <div class="schematic">
+              <svg viewBox="0 0 760 175" role="img" aria-label="Filing timeline and elections">
+                <defs><marker id="ar3" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#9aa3b2"/></marker></defs>
+                <g font-family="Segoe UI, sans-serif" font-size="12" text-anchor="middle">
+                  <line x1="30" y1="60" x2="730" y2="60" stroke="#9aa3b2" stroke-width="3" marker-end="url(#ar3)"/>
+                  <circle cx="60" cy="60" r="8" fill="#003366"/><text x="60" y="38" fill="#003366" font-weight="700">Tax year ends</text>
+                  <circle cx="250" cy="60" r="8" fill="#3C69AB"/><text x="250" y="38" fill="#003366" font-weight="700">Original due date</text>
+                  <circle cx="470" cy="60" r="8" fill="#446B67"/><text x="470" y="38" fill="#294f4c" font-weight="700">Extended due date</text>
+                  <text x="640" y="38" fill="#8b0000" font-weight="700">After that</text>
+                  <rect x="60" y="80" width="410" height="42" rx="6" fill="#F1F5F4" stroke="#446B67"/>
+                  <text x="265" y="98" fill="#294f4c" font-weight="700">Timely original return – all options open</text>
+                  <text x="265" y="114" fill="#294f4c" font-size="11">280C reduced-credit election · QSB payroll election · any credit method</text>
+                  <rect x="480" y="80" width="250" height="42" rx="6" fill="#fdf0f0" stroke="#8b0000"/>
+                  <text x="605" y="98" fill="#8b0000" font-weight="700">Late or amended return</text>
+                  <text x="605" y="114" fill="#8b0000" font-size="11">credit may still be claimed; elections limited</text>
+                  <text x="380" y="152" fill="#374151">An extension is not a disqualifying event – it keeps the original-return elections available until the extended due date.</text>
+                </g>
+              </svg>
+            </div>
+            <p>Filing the return does <b>not</b> automatically eliminate the research credit. It changes which elections are still available and whether the claim is made on an original return, an amended return, or (for a BBA partnership) an Administrative Adjustment Request (AAR).</p>
+            <h4>Return not yet filed</h4>
+            <p>The app determines whether the original return can still be timely filed based on the entity, tax year-end and extension. A timely original return can still make elections that require one – including the <b>Section 280C</b> reduced-credit election and, if the taxpayer qualifies, the <b>QSB payroll-tax election</b>.</p>
+            <h4>Return already filed</h4>
+            <p>A research credit may still be claimed or increased on an amended return if the normal refund statute is open and the special research-credit refund-claim requirements are satisfied. For tax years beginning before 2026, Section G is generally optional on an original return, but amended research-credit claims have additional business-component information requirements.</p>
+            <div class="pitfall"><b class="pl">280C:</b> must be made on the original timely filed return (including extensions) and cannot ordinarily be first made or changed on an amended return. The special OBBBA late-280C relief for 2022–2024 ended no later than July 6, 2026.</p><p><b class="pl">Payroll election:</b> must be made on or before the due date of the originally filed income-tax return, including extensions. It cannot be added later simply by amending the return.</p><p><b class="pl">ASC on an amended return:</b> if no research credit was previously claimed for the year, the ASC election may generally be made on an amended return. If a credit was already claimed using the Regular method, the method cannot simply be switched to ASC by amendment.</p></div>
+            <div class="ref">IRS: <a href="https://www.irs.gov/instructions/i6765" target="_blank">Form 6765 filing and election rules</a> · <a href="https://www.irs.gov/businesses/corporations/research-credit-claims-section-41-on-amended-returns-frequently-asked-questions" target="_blank">Research credit claims on amended returns – FAQ</a> · <a href="https://www.irs.gov/businesses/required-information-for-a-valid-research-credit-claim-for-refund" target="_blank">Required information for a valid refund claim</a></div>
+          </div>
+        </details>
+      </div>
+    </div>
+
+    <!-- ============ CARD 5: STUDY INFO ============ -->
+    <div class="card">
+      <div class="cardhead">Study Information</div>
+      <div class="cardbody">
+        <div class="grid3">
+          <div class="field">
+            <label class="fl">Preparer name</label>
+            <input type="text" name="preparer" value="{{ c.preparer }}" placeholder="Your name">
+          </div>
+          <div class="field">
+            <label class="fl">Version</label>
+            <input type="text" name="version" value="{{ c.version }}">
+            <p class="hint">If you run several versions, name each one (e.g. "v2 – with contractor split").</p>
+          </div>
+          <div class="field">
+            <label class="fl">Study date</label>
+            <input type="text" value="{{ today }}" readonly style="background:#f7f7fa">
+            <p class="hint">Set automatically.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="secondary" name="go" value="stay">Save</button>
+      <button class="btn" name="go" value="next">Save &amp; continue → Projects</button>
+    </div>
+  </form>
+{% endblock %}

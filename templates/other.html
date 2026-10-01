@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block main %}
+<form method="post" id="stepform">
+
+    <h1 class="pg">Other Considerations</h1>
+    <p class="pgsub">Step 5 of 6 · Payroll tax option, Section 280C and the credit method.</p>
+
+    <!-- ============ A. PAYROLL ============ -->
+    <div class="card">
+      <div class="cardhead">A. Payroll-tax credit option</div>
+      <div class="cardbody">
+        <p class="q">If the company qualifies, do you want the study to show the payroll-tax credit option?</p>
+        <div class="seg">
+          <label><input type="radio" name="show_payroll" value="yes" {{ "checked" if o.show_payroll != "no" }}><span>Yes</span></label>
+          <label><input type="radio" name="show_payroll" value="no" {{ "checked" if o.show_payroll == "no" }}><span>No</span></label>
+        </div>
+        <p class="lead" style="margin-top:12px">This is a presentation choice, not an eligibility question. The app determines whether the company appears to meet the Qualified Small Business (QSB) tests from gross receipts, first year of receipts, controlled-group information, and prior payroll-election history.</p>
+        <details class="explain">
+          <summary>Explain this – the payroll-tax credit election</summary>
+          <div class="exbody">
+            <p>A Qualified Small Business may elect to use part of the research credit against payroll taxes. The current maximum election is generally <b>$500,000 per tax year</b>, and an election cannot be made if an election was made for <b>five or more preceding tax years</b>. The election must be made on or before the due date of the originally filed income-tax return, including extensions.</p>
+            <div class="ref">IRS: <a href="https://www.irs.gov/credits-deductions/research-credit-against-payroll-tax-for-small-businesses" target="_blank">Research credit against payroll tax for small businesses</a></div>
+          </div>
+        </details>
+        <div class="enote">Note: calculations are not currently included in the study calculation engine; additional calculations to be added soon. (Today the study shows the payroll option automatically when the gross-receipts test is met, the tax year is 2025 or 2026, and the return has not been filed.)</div>
+      </div>
+    </div>
+
+    <!-- ============ B. 280C ============ -->
+    <div class="card">
+      <div class="cardhead">B. Section 280C reduced-credit election</div>
+      <div class="cardbody">
+        <div class="applied"><span class="k">Treatment applied</span><span class="v">Section 280C reduced credit</span></div>
+        <p class="lead" style="margin-top:12px">No input needed. The app uses the filing-status information from step 1 and the study settings to show the selected / default treatment in the summary. If the return has already been filed, the filing-status answers determine whether the election was already made.</p>
+        <details class="explain">
+          <summary>Explain this – Section 280C</summary>
+          <div class="exbody">
+            <p>The reduced-credit election lowers the credit rather than requiring a separate reduction of the related domestic R&amp;E deduction / capital account. The election must be made on the original timely filed return, including extensions, and cannot generally be first made or changed on an amended return.</p>
+            <div class="ref">IRS: <a href="https://www.irs.gov/instructions/i6765" target="_blank">Instructions for Form 6765 – Section 280C</a></div>
+          </div>
+        </details>
+        <div class="enote">Note: calculations are not currently included in the study calculation engine; additional calculations to be added soon. (Today the engine applies the 280C reduced credit to every result.)</div>
+      </div>
+    </div>
+
+    <!-- ============ C. METHOD ============ -->
+    <div class="card">
+      <div class="cardhead">C. Credit calculation method</div>
+      <div class="cardbody">
+        <div class="applied"><span class="k">Method</span><span class="v">Determined by the app on the Review page</span></div>
+        <p class="lead" style="margin-top:12px">No input needed. The app calculates the methods supported by the available data – Regular Credit and / or Alternative Simplified Credit – and presents the applicable result. The preparer's job is to provide accurate current and historical data.</p>
+        <details class="explain">
+          <summary>Explain this – how the method is chosen</summary>
+          <div class="exbody">
+            <p>The ASC generally depends heavily on the current year and prior three years of QREs. The Regular Credit can require gross-receipts and historical fixed-base information. Missing historical data should remain missing; it should not be silently converted to zero simply to produce a larger credit.</p>
+            <div class="ref">IRS: <a href="https://www.irs.gov/instructions/i6765" target="_blank">Instructions for Form 6765 – Sections A and B</a></div>
+          </div>
+        </details>
+      </div>
+    </div>
+
+    <div class="actions">
+      <a class="backbtn" href="{{ url_for('expenses') }}">← Back</a>
+      <div><button class="secondary" name="go" value="stay">Save</button> &nbsp; <button class="btn" name="go" value="next">Save &amp; continue → Review &amp; Study</button></div>
+    </div>
+  </form>
+{% endblock %}

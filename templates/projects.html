@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block main %}
+<form method="post" enctype="multipart/form-data" id="stepform">
+
+    <h1 class="pg">Projects</h1>
+    <p class="pgsub">Step 2 of 6 · What was being developed or improved.</p>
+
+    <div class="scope">
+      <b>Page purpose.</b> Collect enough facts for the app to understand what was being developed or improved and whether the
+      activity appears to satisfy the core Section 41 tests.
+      <br><br>
+      <b>2026 and later:</b> for tax years beginning after 2025, Form 6765 generally requires business-component information,
+      subject to the form instructions and exceptions. Structuring the study around projects / business components now avoids
+      rebuilding the data later.
+    </div>
+
+    <!-- ============ FOUR-PART TEST (FYI) ============ -->
+    <div class="card">
+      <div class="cardhead">FYI – The four-part test</div>
+      <div class="cardbody">
+        <p class="fp-lead"><b>All four</b> of the following criteria must be met for the research activity to qualify.</p>
+
+        <div class="fp-flow">
+          <div class="fp-step">
+            <div class="fp-num">1</div>
+            <div class="fp-title">Permitted Purpose</div>
+            <div class="fp-sub">Business Component Test</div>
+            <div class="fp-k">Core requirement</div>
+            <p>The activity must aim to create a <b>new or improved business component</b> for sale, lease, license, or use in your trade or business.</p>
+            <div class="fp-k">The goal</div>
+            <p>The research must intend to improve the <b>functionality, performance, reliability, or quality</b> of that component.</p>
+            <div class="fp-no">Aesthetic, cosmetic, or seasonal design modifications do not qualify.</div>
+          </div>
+          <div class="fp-arrow">›</div>
+          <div class="fp-step">
+            <div class="fp-num">2</div>
+            <div class="fp-title">Elimination of Uncertainty</div>
+            <div class="fp-sub">Section 174 Test</div>
+            <div class="fp-k">Core requirement</div>
+            <p>At the outset of the project, there must be a <b>lack of information or technical uncertainty</b> regarding the development of the component.</p>
+            <div class="fp-k">The focus</div>
+            <p>Uncertainty regarding the <b>capability</b> to develop it, the <b>method</b> to achieve it, or the appropriate <b>final design</b>.</p>
+            <div class="fp-yes">The project does not have to succeed – attempting to resolve an uncertainty that ultimately fails still meets this test.</div>
+          </div>
+          <div class="fp-arrow">›</div>
+          <div class="fp-step">
+            <div class="fp-num">3</div>
+            <div class="fp-title">Process of Experimentation</div>
+            <div class="fp-sub">Substantially all – 80% rule</div>
+            <div class="fp-k">Core requirement</div>
+            <p>The business must evaluate <b>alternative solutions</b> through a structured, systematic process.</p>
+            <div class="fp-k">The focus</div>
+            <p>Modeling, simulation, systematic trial-and-error, prototyping, or testing multiple design variations to resolve the technical uncertainties.</p>
+            <div class="fp-yes">Under IRC §41(d)(1)(C), <b>80% or more</b> of the research activities must constitute elements of this process of experimentation.</div>
+          </div>
+          <div class="fp-arrow">›</div>
+          <div class="fp-step">
+            <div class="fp-num">4</div>
+            <div class="fp-title">Technological in Nature</div>
+            <div class="fp-sub">Hard sciences</div>
+            <div class="fp-k">Core requirement</div>
+            <p>The process of experimentation must fundamentally rely on the principles of the <b>hard sciences</b>.</p>
+            <div class="fp-k">The focus</div>
+            <p>Engineering, computer science, biological sciences, or physical sciences (such as chemistry or physics).</p>
+            <div class="fp-no">Social sciences, economics, humanities, or routine consumer surveys are excluded.</div>
+          </div>
+        </div>
+        <div class="fp-result">✓ Permitted Purpose &nbsp;+&nbsp; ✓ Uncertainty &nbsp;+&nbsp; ✓ Experimentation &nbsp;+&nbsp; ✓ Technological &nbsp;=&nbsp; <b>Qualified research</b></div>
+
+        <div class="ref" style="margin-top:12px">Sources:
+          <a href="https://www.irs.gov/businesses/audit-techniques-guide-credit-for-increasing-research-activities-ie-research-tax-credit-irc-ss-41-qualified-research-activities" target="_blank">IRS Audit Techniques Guide – Qualified Research Activities</a> ·
+          <a href="https://www.taxnotes.com/research/federal/irs-private-rulings/field-attorney-advice/irs-issues-guidance-on-four-tests-for-research-credit/76pxf" target="_blank">IRS Field Attorney Advice – four tests (Tax Notes)</a> ·
+          <a href="https://onshore.com/learn/what-qualifies-for-r-and-d-four-part-test" target="_blank">Onshore</a> ·
+          <a href="https://capstantax.com/how-to-determine-rd-tax-credit-eligibility/" target="_blank">Capstan Tax</a> ·
+          <a href="https://leyton.com/us/insights/articles/rd-tax-credit-the-4-part-qualification-test-explained/" target="_blank">Leyton</a> ·
+          <a href="https://www.kbkg.com/research-tax-credits/research-development-tax-credit-qualifying-activities" target="_blank">KBKG</a> ·
+          <a href="https://sourceadvisors.com/blogs/rd/the-irs-4-part-test-for-rd-tax-credits-explained/" target="_blank">Source Advisors</a> ·
+          <a href="https://tannerco.com/rd-tax-credit-essentials/" target="_blank">Tanner</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ COMPANY DESCRIPTION ============ -->
+    <div class="card">
+      <div class="cardhead">Company Description</div>
+      <div class="cardbody">
+        <div class="field">
+          <label class="fl">What does the company do?</label>
+          <textarea name="company_description" rows="4" placeholder="Short narrative: what the company sells or provides, who its customers are, and where the technical work happens.">{{ p.company_description }}</textarea>
+          <div class="upload"><span class="or">or upload</span> <input type="file" name="company_file" accept=".docx,.txt"> <span class="hint" style="margin:0">Word (.docx) or .txt file – the text replaces the box above when you save</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ PROJECT 1 ============ -->
+    <div class="card">
+      <div class="cardhead">Project</div>
+      <div class="cardbody">
+        <div class="grid2">
+          <div class="field">
+            <label class="fl">Project / business component name</label>
+            <input type="text" name="name" value="{{ p.name }}" placeholder="Project name">
+            <p class="hint">Short project name.</p>
+          </div>
+          <div class="field">
+            <label class="fl">Project type</label>
+            <input type="text" name="type" value="{{ p.type }}" placeholder="e.g. Software">
+            <p class="hint">e.g. product, process, software, technique, formula, or other</p>
+          </div>
+
+          <div class="field full">
+            <label class="fl">Project description</label>
+            <textarea name="description" rows="5" placeholder="What was the company trying to build or improve, and what did it need to do that it could not do before?">{{ p.description }}</textarea>
+            <div class="upload"><span class="or">or upload</span> <input type="file" name="project_file" accept=".docx,.txt"> <span class="hint" style="margin:0">Word (.docx) or .txt file – the text replaces the box above when you save</span></div>
+          </div>
+
+          <div class="field full">
+            <details class="explain">
+              <summary>Explain this – does the project have to succeed?</summary>
+              <div class="exbody">
+                <p>A project does not have to succeed to qualify. Failed or abandoned projects can still contain qualified research if the activity met the requirements while it was performed.</p>
+              </div>
+            </details>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+
+    <div class="actions">
+      <a class="backbtn" href="{{ url_for('company') }}">← Back</a>
+      <div><button class="secondary" name="go" value="stay">Save</button> &nbsp; <button class="btn" name="go" value="next">Save &amp; continue → Gross Receipts &amp; Prior-Year QREs</button></div>
+    </div>
+  </form>
+{% endblock %}

@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block main %}
+<h1 class="pg">Review &amp; Study</h1>
+<p class="pgsub">Step 6 of 6 · Check the entries, run the study, and open the client-facing report.</p>
+
+<div class="card">
+  <div class="cardhead">Review your entries</div>
+  <div class="cardbody">
+    {% for title, text, ep in summary %}
+    <div class="rv">
+      <div><div class="t">{{ title }}</div><div class="d">{{ text }}</div></div>
+      <a href="{{ url_for(ep) }}" class="edit">Edit</a>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+{% if flags %}
+<div class="card">
+  <div class="cardhead">Items to review before running the study</div>
+  <div class="cardbody">
+    <div class="pitfall">
+      {% for label, text in flags %}<p><b class="pl">{{ label }}:</b> {{ text }}</p>{% endfor %}
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<form method="post" class="runrow" id="runform">
+  <button class="btn" type="submit" id="runbtn">{{ 'Run study again' if run else 'Run study' }}</button>
+  <div class="working hidden" id="working"><div class="spinner"></div>Running the calculation and building the study PDF…</div>
+</form>
+
+{% if run %}
+<a id="results"></a>
+<!-- Study results – same design as the study PDF scenario page (rd_feasibility_generator.py) -->
+<div class="gen">
+  <div class="page-section-divider">Study results <span style="font-weight:normal;font-size:8pt;color:#6b7280">· run {{ run.ran_at }}</span></div>
+  <div class="scenario-title">Scenario 1 &mdash; R&amp;D Tax Credit Estimate</div>
+  <div class="info-pills">
+    <div class="info-pill"><span class="pill-label">Company</span><span class="pill-value">{{ run.company }}</span></div>
+    <div class="info-pill"><span class="pill-label">Tax Year</span><span class="pill-value">{{ run.tax_year }}</span></div>
+    <div class="info-pill"><span class="pill-label">Entity</span><span class="pill-value">{{ run.entity }}</span></div>
+    <div class="info-pill"><span class="pill-label">280C Election</span><span class="pill-value">Yes</span></div>
+  </div>
+  <div class="card-header" style="margin-top:0">Qualified Research Expenses (QRE)</div>
+  <div class="qre-grid">
+    <div class="qre-card"><div class="qre-label">Wages</div><div class="qre-value">{{ money(run.wages, true) }}</div></div>
+    <div class="qre-card"><div class="qre-label">Supplies</div><div class="qre-value">{{ money(run.supplies, true) }}</div></div>
+    <div class="qre-card"><div class="qre-label">Computers / Cloud</div><div class="qre-value">{{ money(run.computers, true) }}</div></div>
+    <div class="qre-card"><div class="qre-label">Contract Research (65%)</div><div class="qre-value">{{ money(run.contract65, true) }}</div></div>
+    <div class="qre-card qre-total"><div class="qre-label">Total QREs</div><div class="qre-value">{{ money(run.total, true) }}</div></div>
+  </div>
+  <div class="card-header" style="margin-top:0.5rem">Credit Calculation Method</div>
+  <div class="method-row"><span class="method-label">Method Applied:</span><span class="method-value">{{ run.method }}</span></div>
+  <div class="credit-banner">
+    <div class="credit-banner-label">Estimated Federal R&amp;D Tax Credit</div>
+    {% if run.recommended is not none %}
+      <div class="credit-banner-amount">{{ money(run.recommended, true) }}</div>
+      <div class="tax-savings-row"><span>Potential federal tax benefit: Up to {{ money(run.recommended, true) }}, subject to income-tax or payroll-tax limitations and eligibility.</span></div>
+    {% else %}
+      <div class="credit-banner-amount insufficient">Insufficient Data</div>
+    {% endif %}
+  </div>
+  {% if run.warnings %}
+  <div class="warning-note">{% for w in run.warnings %}&#9888; {{ w }}<br>{% endfor %}</div>
+  {% endif %}
+</div>
+
+<div class="card">
+  <div class="cardhead">Client-facing feasibility study</div>
+  <div class="cardbody">
+    <p class="lead">The study is produced by the existing feasibility generator, unchanged: cover letter, sections 1–7, and the scenario analysis.</p>
+    <div class="dlrow">
+      <a href="{{ url_for('study_file', kind='html') }}" target="_blank" class="filebtn">Open study</a>
+      {% if run.pdf_ok %}<a href="{{ url_for('study_file', kind='pdf') }}" class="filebtn">⬇ Download PDF</a>{% endif %}
+      <a href="{{ url_for('study_file', kind='xlsx') }}" class="filebtn">⬇ Download calculation workbook</a>
+    </div>
+    {% if not run.pdf_ok %}<div class="enote">PDF not created ({{ run.pdf_error }}). Open the study and use the browser's Print → Save as PDF, or install Playwright (see README).</div>{% endif %}
+  </div>
+</div>
+{% endif %}
+
+<div class="actions">
+  <a class="backbtn" href="{{ url_for('other') }}">← Back</a>
+  <a class="backbtn" href="{{ url_for('landing') }}">Finish</a>
+</div>
+{% endblock %}

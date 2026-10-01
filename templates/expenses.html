@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% macro table(cat) %}{% set cfg = cats[cat] %}{% set rs = rows[cat] %}
+<div class="lines" data-cat="{{ cat }}" {{ '' if cfg.pct else 'data-nopct=1' }}>
+<input type="hidden" name="{{ cat }}-count" value="{{ rs|length }}">
+<table class="qt"><thead><tr>{% for col in cfg.cols %}<th{{ ' class=r' if loop.index > 3 }}>{{ col }}</th>{% endfor %}</tr></thead>
+<tbody>
+{% for r in rs %}{% set i = loop.index0 %}<tr>
+  <td><input name="{{ cat }}-{{ i }}-name" value="{{ r.name }}"></td>
+  <td><input name="{{ cat }}-{{ i }}-col2" value="{{ r.col2 }}"></td>
+  <td><input class="st" name="{{ cat }}-{{ i }}-state" value="{{ r.state }}"></td>
+  <td><input class="amt" name="{{ cat }}-{{ i }}-amount" value="{{ r.amount }}"></td>
+  {% if cfg.pct %}<td><input class="pct" name="{{ cat }}-{{ i }}-pct" value="{{ r.pct }}"></td>{% endif %}
+  <td class="r calc">—</td></tr>
+{% endfor %}</tbody>
+<tfoot>
+  <tr class="lt-row"><td colspan="{{ cfg.cols|length - 1 }}" class="r"><b>Total of lines</b></td><td class="r"><b class="lt">$0</b></td></tr>
+  <tr class="to-row"><td colspan="3"><b>Or enter total only</b><div class="hint" style="margin:2px 0 0">If entered, this replaces the lines above.</div></td>
+    <td><input class="amt tamt" name="{{ cat }}-total_amount" value="{{ e[cat].total_amount }}" placeholder="{{ cfg.total_label }}"></td>
+    {% if cfg.pct %}<td><input class="pct tpct" name="{{ cat }}-total_pct" value="{{ e[cat].total_pct }}" placeholder="%"></td>{% endif %}
+    <td class="r calc tres">—</td></tr>
+  <tr class="use-row"><td colspan="{{ cfg.cols|length - 1 }}" class="r">Qualified amount used</td><td class="r"><b class="used">$0</b></td></tr>
+</tfoot></table></div>
+{% endmacro %}
+{% block main %}
+<form method="post" enctype="multipart/form-data" id="stepform">
+
+    <h1 class="pg">Qualified R&amp;D Expenses</h1>
+    <p class="pgsub">Step 4 of 6 · Current-year expenses by QRE category.</p>
+
+    <div class="scope">
+      <b>Page purpose.</b> Collect current-year expenses only after the project/activity has been described. The expense label in the
+      general ledger does not determine whether it qualifies.
+    </div>
+
+    <!-- ============ DATA ENTRY METHOD ============ -->
+    <div class="card">
+      <div class="cardhead">Data-entry method</div>
+      <div class="cardbody">
+        <p style="margin:0 0 12px;font-size:.9rem">Either enter the information on screen (up to <b>5 line items</b> per category), enter just the <b>total</b>
+          (total amount × qualified %) on the line below the table, or download the workbook, complete it, and upload it.</p>
+        <div class="wbrow">
+          <a href="{{ url_for('workbook_template') }}" class="filebtn">⬇ Download workbook</a>
+          <div class="upload" style="margin:0"><span class="or">Upload completed workbook</span> <input type="file" name="workbook" accept=".xlsx" id="wbfile"></div>
+        </div>
+        <p class="hint">An uploaded workbook fills every category below and shows the lines it read. Use the workbook when a category has more than 5 lines. The file is read as soon as you choose it.</p>
+      </div>
+    </div>
+
+    <!-- ============ TABS ============ -->
+    <input type="hidden" name="tab" id="tabfield" value="{{ tab }}">
+    <div class="tabs" id="tabs">
+      {% for k, cfg in cats.items() %}<button type="button" class="tab{{ ' active' if tab == k }}" data-t="{{ k }}">{{ cfg.tab }}</button>
+      {% endfor %}
+    </div>
+
+    <div class="card tabcard">
+      <div class="cardbody">
+
+        <!-- WAGES -->
+        <section class="pane" id="p-wages" {{ "" if tab == "wages" else "hidden" }}>
+          <p class="lead">Wages generally qualify only for <b>actual conduct of research, direct supervision, or direct support</b>. General management, finance, payroll, sales, and indirect administrative support generally do not qualify.</p>
+          {{ table('wages') }}
+        </section>
+
+        <!-- SUPPLIES -->
+        <section class="pane" id="p-supplies" {{ "" if tab == "supplies" else "hidden" }}>
+          <p class="lead">Supplies generally must be <b>tangible property used or consumed in qualified research</b>.</p>
+          <div class="pitfall"><b class="pl">Pitfall:</b> depreciable property, equipment, buildings, ordinary office supplies, and general operating costs should not be treated as Section 41 supply QREs. Software subscriptions should not automatically be placed in the supplies category.</div>
+          {{ table('supplies') }}
+        </section>
+
+        <!-- CLOUD -->
+        <section class="pane" id="p-cloud" {{ "" if tab == "cloud" else "hidden" }}>
+          <p class="lead">The current Form 6765 includes <b>rental or lease of computers used in qualified research</b>. Modern cloud/compute arrangements need to be tied specifically to qualified research rather than treated as qualifying merely because they are "tech" expenses.</p>
+          <div class="pitfall"><b class="pl">Pitfall:</b> keep "cloud compute" as a review category, not an automatic safe harbor. General hosting and generic SaaS should not default to QRE. Generic SaaS, production hosting, storage, backup, email, CRM, accounting, project management, or administrative subscriptions should not automatically qualify as computer QRE.</div>
+          {{ table('cloud') }}
+        </section>
+
+        <!-- US CONTRACT -->
+        <section class="pane" id="p-contract" {{ "" if tab == "contract" else "hidden" }}>
+          <p class="lead">Research conducted outside the United States, Puerto Rico, or U.S. territories/possessions generally does not qualify for the Section 41 credit. Contract/funded-research rules can prevent a payment from qualifying when the company is effectively paid to perform someone else's research or does not retain the required rights.</p>
+          <div class="notebox">
+            <p><b class="tl">Calculation note:</b> <i>for most third-party qualified contract research, Form 6765 generally uses <b>65%</b> of the qualifying payment. Enter the full underlying payment and the qualified % – the app applies the 65%.</i></p>
+            <p><b class="tl">Pitfall:</b> <i>do not include 100% of ordinary third-party contract research by default.</i> <b class="tl">Funded research:</b> <i>do not automatically reject every grant or customer-funded project – flag the arrangement for review of financial risk and rights.</i></p>
+          </div>
+          {{ table('contract') }}
+          <div class="sixtyfive">Qualified payment <b id="c_q">$0</b> × 65% = <b id="c_65">$0</b> contract research QRE</div>
+          <div class="enote">Note: special percentages for certain universities, federal laboratories, eligible small businesses, or research consortia are not currently included in the study calculation engine; additional calculations to be added soon. The engine applies 65%.</div>
+        </section>
+
+        <!-- FOREIGN -->
+        <section class="pane" id="p-foreign" {{ "" if tab == "foreign" else "hidden" }}>
+          <p class="lead">Foreign research generally does <b>not</b> enter the Section 41 credit, but foreign R&amp;E may still require separate Section 174 treatment (15-year amortization).</p>
+          <div class="pitfall"><b class="pl">Location note:</b> for this purpose, research outside the United States, Puerto Rico, and U.S. territories/possessions is treated as foreign. Separate two issues: foreign activity generally does not qualify for Section 41, but the foreign R&amp;E portion may still create a 15-year Section 174 amortization item.</div>
+          {{ table('foreign') }}
+          <div class="fgrid">
+            <div class="cell"><div class="k">Foreign R&amp;E amount</div><div class="v" id="f_amt">$0</div></div>
+            <div class="cell"><div class="k">Current-year allowable amortization</div><div class="v" id="f_am">$0</div></div>
+            <div class="cell"><div class="k">Reduction in deductible expense vs. book</div><div class="v" id="f_red">$0</div></div>
+          </div>
+          <p class="hint">Kept separate from the Section 41 QRE total.</p>
+          <details class="explain">
+            <summary>Explain this – how foreign R&amp;E is amortized (not used for the R&amp;D credit)</summary>
+            <div class="exbody">
+              <p>Foreign research or experimental (R&amp;E) expenditures are <b>not</b> Section 41 QREs and never enter the credit calculation. They are a separate Section 174 deduction-timing item: the current deduction under Section 174A applies only to <b>domestic</b> R&amp;E, so foreign R&amp;E must still be capitalized and amortized.</p>
+              <h4>How the amortization works</h4>
+              <ul>
+                <li><b>Period:</b> 15 years (180 months).</li>
+                <li><b>Start:</b> the midpoint of the tax year the cost is paid or incurred (mid-year convention) – regardless of the month it was actually paid.</li>
+                <li><b>Result:</b> year 1 = 1/30 of the cost; years 2–15 = 1/15 each; year 16 = the last 1/30.</li>
+                <li><b>Book vs. tax:</b> books usually expense the full cost in year 1, so the difference is added back on the tax return (M-1 / M-3) and reverses over the next 15 years.</li>
+                <li><b>No acceleration:</b> if the project is abandoned or the property disposed of, the remaining balance is generally not written off – amortization continues on the same schedule.</li>
+                <li><b>Reporting:</b> the amortization is generally reported on Form 4562, Part VI (Section 174).</li>
+              </ul>
+              <table class="mtable am">
+                <thead><tr><th>Example: $30,000 foreign R&amp;E paid in 2025</th><th class="r">Tax deduction</th><th class="r">Remaining balance</th></tr></thead>
+                <tbody>
+                  <tr><td>2025 (year 1 – half year)</td><td class="r">$1,000</td><td class="r">$29,000</td></tr>
+                  <tr><td>2026 – 2039 (years 2–15)</td><td class="r">$2,000 per year</td><td class="r">declines $2,000 per year</td></tr>
+                  <tr><td>2040 (year 16 – half year)</td><td class="r">$1,000</td><td class="r">$0</td></tr>
+                  <tr><td><b>2025 book expense $30,000 − tax deduction $1,000</b></td><td class="r" colspan="2"><b>= $29,000 added back in 2025</b></td></tr>
+                </tbody>
+              </table>
+              <div class="ref">IRS: <a href="https://www.irs.gov/instructions/i4562" target="_blank">Instructions for Form 4562</a> · <a href="https://www.irs.gov/instructions/i6765" target="_blank">Instructions for Form 6765</a></div>
+            </div>
+          </details>
+          <div class="enote">Note: calculations are not currently included in the study calculation engine; additional calculations to be added soon. (Amortization shown for information: 15 years, mid-year convention – 1/30 in the first year.)</div>
+        </section>
+
+      </div>
+    </div>
+
+    <div class="ref" style="margin-top:4px">IRS: <a href="https://www.irs.gov/instructions/i6765" target="_blank">Form 6765 – QRE categories and contract research limits</a></div>
+
+    <div class="actions">
+      <a class="backbtn" href="{{ url_for('history') }}">← Back</a>
+      <div><button class="secondary" name="go" value="stay">Save</button> &nbsp; <button class="btn" name="go" value="next">Save &amp; continue → Other Considerations</button></div>
+    </div>
+  </form>
+{% endblock %}

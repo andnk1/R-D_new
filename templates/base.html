@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}R&amp;D Feasibility Study{% endblock %}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}">
+</head>
+<body data-page="{{ step|default('landing') }}">
+
+<div class="topbar">
+  <div class="crumb"><a href="https://mainpage.andreeank.workers.dev/">Tool Library</a> &nbsp;/&nbsp; <a href="{{ url_for('landing') }}">R&amp;D</a>{% if step %} &nbsp;/&nbsp; <b>Feasibility Study</b>{% endif %}</div>
+  <div class="meta">{% if step and meta_year %}Tax year {{ meta_year }}{% if meta_version %} · Version {{ meta_version }}{% endif %}{% endif %}</div>
+</div>
+
+{% block body %}
+<div class="layout">
+  <nav class="steps">
+    <ol>
+      {% for key, label in steps %}
+      {% set cls = 'current' if key == step else ('done' if key in done else '') %}
+      <li class="{{ cls }}"><span class="dot">{{ '✓' if cls == 'done' else loop.index }}</span><a href="{{ url_for(key) }}">{{ label }}</a><span class="st">{{ 'In progress' if cls == 'current' else ('Completed' if cls == 'done' else 'Not started') }}</span></li>
+      {% endfor %}
+    </ol>
+  </nav>
+  <main>
+    {% with msgs = get_flashed_messages(with_categories=true) %}
+      {% for cat, msg in msgs %}<div class="flash {{ 'err' if cat == 'err' }}">{{ msg }}</div>{% endfor %}
+    {% endwith %}
+    {% block main %}{% endblock %}
+  </main>
+</div>
+{% endblock %}
+
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
