@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block main %}
 <h1 class="pg">Review &amp; Study</h1>
-<p class="pgsub">Step 6 of 6 · Check the entries, run the study, and open the client-facing report.</p>
+<p class="pgsub">Step 6 of 6 · Check the entries, run the study, add any supporting documents, and download the PDF package.</p>
 
 <div class="card">
   <div class="cardhead">Review your entries</div>
@@ -33,38 +33,15 @@
 
 {% if run %}
 <a id="results"></a>
-<!-- Study results – same design as the study PDF scenario page (rd_feasibility_generator.py) -->
-<div class="gen">
-  <div class="page-section-divider">Study results <span style="font-weight:normal;font-size:8pt;color:#6b7280">· run {{ run.ran_at }}</span></div>
-  <div class="scenario-title">Scenario 1 &mdash; R&amp;D Tax Credit Estimate</div>
-  <div class="info-pills">
-    <div class="info-pill"><span class="pill-label">Company</span><span class="pill-value">{{ run.company }}</span></div>
-    <div class="info-pill"><span class="pill-label">Tax Year</span><span class="pill-value">{{ run.tax_year }}</span></div>
-    <div class="info-pill"><span class="pill-label">Entity</span><span class="pill-value">{{ run.entity }}</span></div>
-    <div class="info-pill"><span class="pill-label">280C Election</span><span class="pill-value">Yes</span></div>
-  </div>
-  <div class="card-header" style="margin-top:0">Qualified Research Expenses (QRE)</div>
-  <div class="qre-grid">
-    <div class="qre-card"><div class="qre-label">Wages</div><div class="qre-value">{{ money(run.wages, true) }}</div></div>
-    <div class="qre-card"><div class="qre-label">Supplies</div><div class="qre-value">{{ money(run.supplies, true) }}</div></div>
-    <div class="qre-card"><div class="qre-label">Computers / Cloud</div><div class="qre-value">{{ money(run.computers, true) }}</div></div>
-    <div class="qre-card"><div class="qre-label">Contract Research (65%)</div><div class="qre-value">{{ money(run.contract65, true) }}</div></div>
-    <div class="qre-card qre-total"><div class="qre-label">Total QREs</div><div class="qre-value">{{ money(run.total, true) }}</div></div>
-  </div>
-  <div class="card-header" style="margin-top:0.5rem">Credit Calculation Method</div>
-  <div class="method-row"><span class="method-label">Method Applied:</span><span class="method-value">{{ run.method }}</span></div>
-  <div class="credit-banner">
-    <div class="credit-banner-label">Estimated Federal R&amp;D Tax Credit</div>
-    {% if run.recommended is not none %}
-      <div class="credit-banner-amount">{{ money(run.recommended, true) }}</div>
-      <div class="tax-savings-row"><span>Potential federal tax benefit: Up to {{ money(run.recommended, true) }}, subject to income-tax or payroll-tax limitations and eligibility.</span></div>
-    {% else %}
-      <div class="credit-banner-amount insufficient">Insufficient Data</div>
-    {% endif %}
-  </div>
-  {% if run.warnings %}
-  <div class="warning-note">{% for w in run.warnings %}&#9888; {{ w }}<br>{% endfor %}</div>
-  {% endif %}
+<!-- Final page – the study's credit summary (same table and wording as the study PDF) -->
+<div class="rpt">
+  <div class="rpt-run">Study results · run {{ run.ran_at }}</div>
+  <div class="section-title">Credit for Increasing Research Activities</div>
+  <table><tbody>
+    {% for label, value in run.rows %}<tr><td style="width:75%">{{ label }}</td><td>{{ value }}</td></tr>{% endfor %}
+  </tbody></table>
+  <div class="section-narrative">{% for p in run.narrative %}<p>{{ p }}</p>{% endfor %}</div>
+  {% if run.warnings %}<div class="warning-note">{% for w in run.warnings %}&#9888; {{ w }}<br>{% endfor %}</div>{% endif %}
 </div>
 
 {% if run.other %}{% set o = run.other %}
@@ -100,15 +77,16 @@
 {% endif %}
 
 <div class="card">
-  <div class="cardhead">Client-facing feasibility study</div>
+  <div class="cardhead">Client-facing R&amp;D study</div>
   <div class="cardbody">
-    <p class="lead">The study is produced by the existing feasibility generator, unchanged: cover letter, sections 1–7, and the scenario analysis.</p>
+    <p class="lead">Cover, letter, credit summary, company and project overview, the QRE detail pages (wages, supplies, computer / cloud, U.S. and foreign contractors) and gross receipts. The <b>PDF package</b> is the study followed by the documents uploaded below.</p>
     <div class="dlrow">
       <a href="{{ url_for('.study_file', what='html') }}" target="_blank" class="filebtn">Open study</a>
-      {% if run.pdf_ok %}<a href="{{ url_for('.study_file', what='pdf') }}" class="filebtn">⬇ Download PDF</a>{% endif %}
+      {% if run.pdf_ok %}<a href="{{ url_for('.package') }}" class="filebtn">⬇ Download PDF package{% if uploads %} ({{ uploads|length }} document{{ 's' if uploads|length != 1 }} added){% endif %}</a>
+      <a href="{{ url_for('.study_file', what='pdf') }}" class="filebtn">⬇ Study PDF only</a>{% endif %}
       <a href="{{ url_for('.study_file', what='xlsx') }}" class="filebtn">⬇ Download calculation workbook</a>
     </div>
-    {% if not run.pdf_ok %}<div class="enote">PDF not created ({{ run.pdf_error }}). Open the study and use the browser's Print → Save as PDF, or install Playwright (see README).</div>{% endif %}
+    {% if not run.pdf_ok %}<div class="enote">PDF not created ({{ run.pdf_error }}). Open the study and use the browser's Print → Save as PDF, or install Playwright (see README). The PDF package needs the study PDF.</div>{% endif %}
   </div>
 </div>
 
@@ -122,6 +100,38 @@
 </div>
 {% endif %}
 {% endif %}
+
+<a id="documents"></a>
+<div class="card">
+  <div class="cardhead">Upload your documents</div>
+  <div class="cardbody">
+    <p class="lead">Add any other documents that should go in the client's PDF package – for example project write-ups, payroll reports, contracts, invoices, time sheets or screenshots. The app does not read or change them: each file is added, as it is, <b>after the last page of the study</b>, in the order listed below. Use ↑ / ↓ to change the order.</p>
+    <p class="lead">Accepted: <b>PDF</b>, <b>pictures</b> (JPG, PNG – each picture becomes one page, fitted to the page) and <b>text files</b> (TXT). Word files are not accepted – open them in Word and use File → Save As → PDF, then upload the PDF. Several files can be chosen at once; up to 60 MB per upload. Password-protected PDFs cannot be added.</p>
+    <form method="post" action="{{ url_for('.upload_documents') }}" enctype="multipart/form-data" class="uprow">
+      <label class="filebtn">Choose files<input type="file" name="documents" multiple accept="{{ accept }}" hidden onchange="this.form.querySelector('.upnames').textContent = Array.from(this.files).map(f => f.name).join(', ') || 'No files chosen'"></label>
+      <span class="upnames hint">No files chosen</span>
+      <button class="btn small" type="submit">Upload</button>
+    </form>
+    {% if uploads %}
+    <table class="doctable">
+      <thead><tr><th style="width:36px">#</th><th>Document</th><th>Type</th><th>Size</th><th style="width:150px"></th></tr></thead>
+      <tbody>
+      {% for d in uploads %}
+        <tr><td>{{ loop.index }}</td><td>{{ d.name }}</td><td>{{ d.type }}</td><td>{{ d.size }}</td>
+          <td class="docact">
+            {% if not loop.first %}<form method="post" action="{{ url_for('.change_document', doc_id=d.id, action='up') }}"><button class="mini" title="Move up">↑</button></form>{% endif %}
+            {% if not loop.last %}<form method="post" action="{{ url_for('.change_document', doc_id=d.id, action='down') }}"><button class="mini" title="Move down">↓</button></form>{% endif %}
+            <form method="post" action="{{ url_for('.change_document', doc_id=d.id, action='remove') }}"><button class="mini rm">Remove</button></form>
+          </td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    <p class="hint">Changes here do not need a new study run – the package is put together each time you download it.</p>
+    {% else %}
+    <p class="hint">No documents uploaded yet – the package will contain the study only.</p>
+    {% endif %}
+  </div>
+</div>
 
 <div class="actions">
   <a class="backbtn" href="{{ url_for('.other') }}">← Back</a>

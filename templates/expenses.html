@@ -42,7 +42,7 @@
         <p style="margin:0 0 12px;font-size:.9rem">Either enter the information on screen (up to <b>5 line items</b> per category), enter just the <b>total</b>
           (total amount × qualified %) on the line below the table, or download the workbook, complete it, and upload it.</p>
         <div class="wbrow">
-          <a href="{{ url_for('workbook_template') }}" class="filebtn">⬇ Download workbook</a>
+          <a href="{{ url_for('.workbook_template') }}" class="filebtn">⬇ Download workbook</a>
           <div class="upload" style="margin:0"><span class="or">Upload completed workbook</span> <input type="file" name="workbook" accept=".xlsx" id="wbfile"></div>
         </div>
         <p class="hint">An uploaded workbook fills every category below and shows the lines it read. Use the workbook when a category has more than 5 lines. The file is read as soon as you choose it.</p>
@@ -137,7 +137,7 @@
     <div class="ref" style="margin-top:4px">IRS: <a href="https://www.irs.gov/instructions/i6765" target="_blank">Form 6765 – QRE categories and contract research limits</a></div>
 
     <div class="actions">
-      <a class="backbtn" href="{{ url_for('history') }}">← Back</a>
+      <a class="backbtn" href="{{ url_for('.history') }}">← Back</a>
       <div><button class="secondary" name="go" value="stay">Save</button> &nbsp; <button class="btn" name="go" value="next">Save &amp; continue → Other Considerations</button></div>
     </div>
   </form>

@@ -1,8 +1,30 @@
-# R&D Tax Credit – Feasibility Study (web app)
+# R&D Tax Credit – Feasibility Study and R&D Study (web app)
 
 Internal CFO Associates tool. Six screens collect the facts, the existing calculation engine
 works out the credit, and the existing feasibility generator produces the client-facing study
 (HTML + PDF) and the calculation workbook.
+
+## Two apps, same screens
+
+| App | Address | Final page and deliverable |
+|---|---|---|
+| Feasibility Study | `/feasibility/...` | Scenario results; feasibility study PDF (existing generator, unchanged) |
+| R&D Study | `/study/...` | Credit summary table + narrative; R&D study PDF **package** (study + uploaded documents); draft 6765 |
+
+Steps 1–5 are the same templates and code for both (`app.py` registers them twice, as two blueprints).
+The R&D Study screens use inverted colors (bars #446B67, main buttons #003366 – see the end of `static/app.css`).
+Each app keeps its own study in the browser session; an R&D Study always starts empty.
+
+R&D Study only:
+- `study_report.py` builds the study (wording, page layout and CSS from `rd_study_generator_Regular Credit Method.py`;
+  numbers from the same engine as the feasibility app). Edit `LETTER_PARAS`, `TOC` and `CREDIT_TAB_NARRATIVE` there.
+- Pages: cover, letter, Credit for Increasing Research Activities, Company Overview, Project Overview (step 2 text,
+  one paragraph per line), Wage QRE, Supply QRE, Computer / Cloud QRE, Contractor US, Contractor Foreign, Gross Receipts.
+  The old Comments page is not used.
+- **Upload your documents** (bottom of step 6): PDF, JPG/PNG and TXT. Not read – appended after the study in the
+  order shown (↑/↓ to reorder). Word files are refused with a "save as PDF" message. The package is built each time
+  it is downloaded, so adding documents does not need a new run.
+- Form 6765 stays a separate download.
 
 ## Run it on your computer
 
@@ -21,6 +43,7 @@ works out the credit, and the existing feasibility generator produces the client
 |---|---|
 | `app.py` | The web app: one route per screen, saving answers, downloads |
 | `study.py` | Turns the screen answers into the engine's inputs, runs the engine and the study generator |
+| `study_report.py` | R&D Study deliverable: study pages, uploaded documents, PDF package |
 | `form6765.py` | Draft Form 6765 (Export 6765 button on the Review page) – separate PDF, flattened, whole dollars |
 | `forms/f6765.pdf` | Blank IRS Form 6765 (Rev. December 2024). When the IRS revises the form, replace this file and check the field list: `python form6765.py --fields` |
 | `workbook.py` | The downloadable expense workbook and reading it back when uploaded; reads .docx/.txt descriptions |

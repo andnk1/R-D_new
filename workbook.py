@@ -23,12 +23,12 @@ TEMPLATE_HEADERS = {
 }
 
 
-def template_bytes():
+def template_bytes(title="R&D Feasibility Study"):
     wb = openpyxl.Workbook()
     ws = wb.active
     ws.title = "Instructions"
     lines = [
-        "R&D Feasibility Study – expense workbook",
+        f"{title} – expense workbook",
         "",
         "Fill in one row per employee / vendor / contractor on each tab, then upload this file on step 4.",
         "Qualified % and R&E %: enter as a percentage (e.g. 50%). Leave a row blank to skip it.",

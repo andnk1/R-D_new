@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{% block title %}R&amp;D Feasibility Study{% endblock %}</title>
+<title>{% block title %}{{ app_name }}{% endblock %}</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}">
 </head>
-<body data-page="{{ step|default('landing') }}">
+<body data-page="{{ step|default('landing') }}"{% if is_study %} class="theme-study"{% endif %}>
 
 <div class="topbar">
-  <div class="crumb"><a href="https://mainpage.andreeank.workers.dev/">Tool Library</a> &nbsp;/&nbsp; <a href="{{ url_for('landing') }}">R&amp;D</a>{% if step %} &nbsp;/&nbsp; <b>Feasibility Study</b>{% endif %}</div>
+  <div class="crumb"><a href="https://mainpage.andreeank.workers.dev/">Tool Library</a> &nbsp;/&nbsp; <a href="{{ url_for('landing') }}">R&amp;D</a>{% if step %} &nbsp;/&nbsp; <b>{{ app_name }}</b>{% endif %}</div>
   <div class="meta">{% if step and meta_year %}Tax year {{ meta_year }}{% if meta_version %} · Version {{ meta_version }}{% endif %}{% endif %}</div>
 </div>
 
@@ -20,7 +20,7 @@
     <ol>
       {% for key, label in steps %}
       {% set cls = 'current' if key == step else ('done' if key in done else '') %}
-      <li class="{{ cls }}"><span class="dot">{{ '✓' if cls == 'done' else loop.index }}</span><a href="{{ url_for(key) }}">{{ label }}</a><span class="st">{{ 'In progress' if cls == 'current' else ('Completed' if cls == 'done' else 'Not started') }}</span></li>
+      <li class="{{ cls }}"><span class="dot">{{ '✓' if cls == 'done' else loop.index }}</span><a href="{{ url_for('.' ~ key) }}">{{ label }}</a><span class="st">{{ 'In progress' if cls == 'current' else ('Completed' if cls == 'done' else 'Not started') }}</span></li>
       {% endfor %}
     </ol>
   </nav>

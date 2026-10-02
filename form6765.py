@@ -260,7 +260,7 @@ def render(info):
         cv.drawCentredString(W[pi] / 2, H[pi] - 22, "DRAFT – review before filing")
         cv.setFont("Helvetica", 6.5)
         cv.drawCentredString(W[pi] / 2, H[pi] - 31,
-                             f"Prepared from the R&D feasibility study · {info['company']} · tax year {info['tax_year']} · "
+                             f"Prepared from the {info.get('source', 'R&D feasibility study')} · {info['company']} · tax year {info['tax_year']} · "
                              f"{datetime.now().strftime('%b %d, %Y')} · Form 6765 ({FORM_REV})")
         # Values
         cv.setFillColor(BLUE)
@@ -345,6 +345,7 @@ def _notes_box(cv, x, top, width, title, items):
 
 def export(study):
     info = build(study)
+    info["source"] = "R&D study" if study.get("kind") == "study" else "R&D feasibility study"
     return render(info), info
 
 

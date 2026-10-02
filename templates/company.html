@@ -6,7 +6,7 @@
     <p class="pgsub">Step 1 of 6 · Who the taxpayer is, when the research started, and where the tax return stands.</p>
 
     <div class="scope">
-      <b>Scope of this application.</b> This application is designed for federal R&amp;D credit feasibility studies for
+      <b>Scope of this application.</b> This application is designed for federal R&amp;D credit {{ 'studies' if is_study else 'feasibility studies' }} for
       <b>tax years beginning in 2025 or later</b>. It assumes domestic research and experimental (R&amp;E) expenditures are
       currently deducted under IRC Section 174A rather than separately modeled as a capitalization/amortization study.
       <br><br>
@@ -107,7 +107,7 @@
                   </svg>
                 </div>
                 <h4>Why 2025 and later</h4>
-                <p>For domestic research or experimental (R&amp;E) costs, new IRC Section 174A restores a current deduction for tax years beginning after December 31, 2024. Taxpayers may instead elect to capitalize and amortize domestic R&amp;E over at least 60 months. The feasibility app assumes the current-deduction path for domestic R&amp;E.</p>
+                <p>For domestic research or experimental (R&amp;E) costs, new IRC Section 174A restores a current deduction for tax years beginning after December 31, 2024. Taxpayers may instead elect to capitalize and amortize domestic R&amp;E over at least 60 months. The {{ 'app' if is_study else 'feasibility app' }} assumes the current-deduction path for domestic R&amp;E.</p>
                 <h4>What was different in 2022–2024</h4>
                 <p>Domestic specified research expenditures were generally required to be capitalized and amortized over 5 years under the prior Section 174 rules (foreign R&amp;E over 15 years). The Section 41 credit did not disappear; the major change was the deduction/capitalization treatment that interacts with the credit.</p>
                 <h4>2022–2024 balances already capitalized</h4>

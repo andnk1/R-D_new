@@ -266,6 +266,28 @@ def calculate(study):
     return data, result, used
 
 
+def method_summary(result, used):
+    """(method label for the results block, the method NOT used – shown in its own box)."""
+    rec = result["recommended_credit"]
+    if rec is None:
+        method = "Insufficient data — see notes below"
+    elif used == "asc":
+        method = "Alternative Simplified Credit (ASC) — 280C applied (feasibility estimate)"
+    else:
+        method = "Regular Credit Method — 280C reduced credit (15.8%)"
+    other = None
+    if used:
+        o = "regular" if used == "asc" else "asc"
+        ov = result["regular_credit_280c"] if o == "regular" else result["asc_credit_280c"]
+        ost = result["regular_method_status"] if o == "regular" else result["asc_method_status"]
+        uv = rec
+        other = {"key": o, "name": METHOD_NAMES[o], "value": ov, "status": ost,
+                 "used_name": METHOD_NAMES[used],
+                 "higher": ov is not None and ov > uv,
+                 "diff": (ov - uv) if ov is not None else None}
+    return method, other
+
+
 def run_study(study, folder):
     data, result, used = calculate(study)
 
@@ -306,24 +328,7 @@ def run_study(study, folder):
 
     safe = re.sub(r"[^A-Za-z0-9_]", "_", company)
     rec = result["recommended_credit"]
-    if rec is None:
-        method = "Insufficient data — see notes below"
-    elif used == "asc":
-        method = "Alternative Simplified Credit (ASC) — 280C applied (feasibility estimate)"
-    else:
-        method = "Regular Credit Method — 280C reduced credit (15.8%)"
-
-    # The method NOT used in the study – shown in its own box on the Review page
-    other = None
-    if used:
-        o = "regular" if used == "asc" else "asc"
-        ov = result["regular_credit_280c"] if o == "regular" else result["asc_credit_280c"]
-        ost = result["regular_method_status"] if o == "regular" else result["asc_method_status"]
-        uv = rec
-        other = {"key": o, "name": METHOD_NAMES[o], "value": ov, "status": ost,
-                 "used_name": METHOD_NAMES[used],
-                 "higher": ov is not None and ov > uv,
-                 "diff": (ov - uv) if ov is not None else None}
+    method, other = method_summary(result, used)
 
     return {
         "ran_at": datetime.now().strftime("%b %d, %Y %I:%M %p"),

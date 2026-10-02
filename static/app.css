@@ -320,3 +320,37 @@ form { margin: 0; }
 .om-status { font-size: .8rem; color: #6b7280; margin: 8px 0 0; }
 .om-form { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 12px; }
 .om-form .q { font-weight: 600; font-size: .9rem; color: var(--dark); }
+
+/* ======================================================================
+   R&D Study theme – colors inverted from the feasibility app:
+   ribbons / bars = TaxPro green #446B67, main buttons = navy #003366
+   ====================================================================== */
+body.theme-study, .choice.study { --dark: #446B67; --green: #003366; }
+body.theme-study .btn:hover, .choice.study .btn:hover { background: #1f4f80; }
+body.theme-study .card.collapsed .cardhead { background: #4e7874; }
+
+/* Final page – credit summary shown like the study PDF page */
+.rpt { font-family: Verdana, Geneva, Tahoma, sans-serif; font-size: 9pt; color: #1a1a1a; background: #fff;
+  border: 1px solid #9aa3b2; border-radius: 8px; padding: 22px 28px 16px; margin: 18px 0; }
+.rpt .rpt-run { font-size: 8pt; color: #6b7280; margin-bottom: 10px; }
+.rpt .section-title { font-size: 13pt; font-weight: bold; color: #003366; padding-bottom: .3rem; border-bottom: 2px solid #003366; }
+.rpt table { width: 100%; border-collapse: collapse; font-size: 8.5pt; margin-top: .5rem; }
+.rpt td { padding: .3rem .55rem; border: 1px solid #ccd8e8; vertical-align: top; }
+.rpt tr:nth-child(even) td { background: #f4f7fb; }
+.rpt tr:last-child td { font-weight: bold; background: #dbe4f0; border-top: 2px solid #003366; }
+.rpt .section-narrative { margin-top: .7rem; font-size: 8.8pt; line-height: 1.65; text-align: justify; }
+.rpt .section-narrative p { margin: 0 0 .5rem; }
+.rpt .warning-note { margin-top: .6rem; font-size: 8pt; color: #8b0000; background: #fdf0f0; border-left: 3px solid #8b0000; padding: .4rem .6rem; }
+
+/* Upload your documents */
+.uprow { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 10px 0 6px; }
+.uprow .filebtn { cursor: pointer; }
+.doctable { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: .88rem; }
+.doctable th { background: var(--dark); color: #fff; text-align: left; padding: 7px 10px; font-size: .74rem; text-transform: uppercase; letter-spacing: .04em; }
+.doctable td { padding: 6px 10px; border-bottom: 1px solid var(--grey); vertical-align: middle; }
+.docact { text-align: right; white-space: nowrap; }
+.docact form { display: inline; }
+button.mini { background: #fff; color: var(--dark); border: 1px solid var(--grey); border-radius: 5px; padding: 3px 9px; font-size: .8rem; cursor: pointer; margin-left: 4px; }
+button.mini:hover { background: var(--cardbg); }
+button.mini.rm { color: #8b0000; }
+.uprow label.filebtn { text-transform: none; letter-spacing: normal; font-size: .9rem; font-weight: 600; margin: 0; color: #374151; }
