@@ -19,6 +19,86 @@
       </div>
     </div>
   </div>
+
+  <style>
+    .scope { margin-top: 36px; background: var(--cardbg); border: 1px solid #9aa3b2; border-radius: 8px; padding: 22px 28px; }
+    .scope h2 { color: var(--dark); font-size: 1.15rem; font-weight: 800; margin: 0 0 10px; }
+    .scope h2 + ul { margin-top: 0; }
+    .scope h2.next { margin-top: 26px; padding-top: 18px; border-top: 1px solid var(--grey); }
+    .scope h3 { font-size: .95rem; font-weight: 700; color: var(--ink); margin: 16px 0 6px; }
+    .scope ul { margin: 0 0 6px; padding-left: 22px; }
+    .scope li { font-size: .9rem; line-height: 1.55; color: var(--ink); margin: 0 0 5px; }
+  </style>
+  <div class="scope">
+    <h2>To Be Added/Corrected</h2>
+    <ul>
+      <li>Consistency rule (line 40): any new expense category in the current year must also be added to the base years.</li>
+      <li>Contract research rates: 75% for qualified research consortia, and 100% for energy research done by a small business, university or federal laboratory. Currently only the 65% rate is applied.</li>
+      <li><strong>Regular credit, 11th year and later: the rule is any 5 of years 5–10, but the engine uses years 5–9.</strong></li>
+      <li>Computer rental: costs should be reduced by amounts the company received for renting out substantially identical property.</li>
+      <li>Wages used for the work opportunity credit must be excluded, and the line 27 (Form 8932) reduction isn't handled.</li>
+      <li>Payroll tax election: the election can't be made if it was already made for 5 or more preceding tax years. The app doesn't ask this.</li>
+      <li>Form 8974 isn't prepared. Add a warning on the last page: Form 8974 should be prepared and sent to the IRS in order to claim the payroll tax credit.</li>
+    </ul>
+
+    <h2 class="next">Not Included Due to Complexity</h2>
+    <ul>
+      <li>Tax years beginning before 2025. The pre-2025 rules for capitalizing research costs under section 174 aren't handled.</li>
+      <li>Controlled groups and businesses under common control, including the Item B attachment, each member's share of the credit, and group-level gross receipts and QREs.</li>
+      <li><strong>Not electing section 280C. The calculation always uses the reduced credit (15.8% regular / 79% of the ASC) and marks Item A "Yes." If a client chooses the full credit instead, the calculation, the 174A deduction reduction and the required attachment aren't covered.</strong></li>
+      <li>Section E, lines 37, 39, 40 and 41.</li>
+      <li>Energy research consortia (line 1) and basic research payments (lines 2–3 and 46).</li>
+      <li>Only 10 prior years are used in the calculation.</li>
+      <li>Section G (business components) isn't completed. It's optional for tax years beginning before 2026, and required after that unless the company is a small filer or is making the payroll tax election.</li>
+      <li>Returns already filed and amended returns.</li>
+      <li>"Existing companies," meaning those with QREs and gross receipts in 1984–1988. The engine assumes a start-up fixed-base percentage.</li>
+      <li>Short tax years: gross receipts must be annualized, and the base-period rules in Regulations section 1.41-3(b) apply.</li>
+    </ul>
+
+    <h3>Other scenarios not covered</h3>
+    <ul>
+      <li>Prepaid contract research counts in the year the work is done, not the year it's paid.</li>
+      <li>Claims on amended returns or AARs. The required claim information (Form6765ClaimInformation.pdf, the "Form6765Study.pdf" page references, and Section G column 49(f)) isn't produced.</li>
+      <li>The ASC can be elected on an amended return only if no research credit was claimed for that year on any earlier return.</li>
+      <li>If the return was already filed, the 280C election and the payroll tax election are both lost, because each must be made on the original timely filed return. The app already skips Section D when the return was filed; there is no warning for 280C.</li>
+      <li>BBA partnerships: AARs, Forms 8985/8986, and partners receiving the credit through Form 8978.</li>
+    </ul>
+
+    <h3>Calculation rules</h3>
+    <ul>
+      <li>Gross receipts adjustments: reducing for returns and allowances, including only effectively connected income for foreign corporations, and predecessor businesses.</li>
+      <li>Acquisitions or dispositions of a business (line 39): the base-period QREs and gross receipts must be adjusted.</li>
+    </ul>
+
+    <h3>Section C, Form 3800 and pass-throughs</h3>
+    <ul>
+      <li>Line 29: credits passed through on Schedules K-1 (not included by decision).</li>
+      <li>Line 31: estates and trusts allocating the credit to beneficiaries.</li>
+      <li>Form 3800 limits, carryforwards and carrybacks, and the AMT offset for eligible small businesses.</li>
+      <li>The line 35 general business credit carryforward worksheet for C corporations and sole proprietors.</li>
+    </ul>
+
+    <h3>Payroll tax election (Section D)</h3>
+    <ul>
+      <li>Line 33b: payroll taxes reported under a different EIN.</li>
+    </ul>
+
+    <h3>Qualification topics the study doesn't test</h3>
+    <ul>
+      <li>Internal-use software: the high-threshold-of-innovation test, dual-function software, and the 25% safe harbor.</li>
+      <li>Funded research. Also, research done in Puerto Rico or other U.S. territories qualifies, and territory QREs must be included in the fixed-base calculation. This may matter for Act 60 clients.</li>
+      <li>Statistical sampling (Rev. Proc. 2011-42).</li>
+      <li>The ASC 730 Directive, which applies to companies with $10 million or more in assets and audited GAAP financial statements.</li>
+      <li>Electing the orphan drug credit (Form 8820) instead.</li>
+    </ul>
+
+    <h3>Related items outside Form 6765</h3>
+    <ul>
+      <li>Section 174A effects. If 280C isn't elected, the 174A deduction must be reduced by the credit and a statement attached. The 2022–2024 transition options under Rev. Proc. 2025-28 also aren't covered.</li>
+      <li>State R&amp;D credits.</li>
+      <li>Tax-exempt organizations, which can't be qualified small businesses for the payroll tax election.</li>
+    </ul>
+  </div>
   <p class="disclaimer">Internal tool – CFO Associates. Studies are not stored: answers are kept temporarily while you work and are cleared after 24 hours or when you start a new study.</p>
 </div>
 {% endblock %}
